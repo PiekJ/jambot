@@ -6,19 +6,27 @@ import dev.joopie.jambot.exceptions.JambotMusicPlayerException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.*;
+import org.springframework.scheduling.TaskScheduler;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledFuture;
 
 @Slf4j
 @RequiredArgsConstructor
 public class GuildMusicPlayer {
     public static final int VOLUME_MAX = 50;
+    private static final int SCHEDULE_LEAVE_MINUTES = 5;
 
     private final Guild guild;
     private final AudioPlayer audioPlayer;
     private final BlockingQueue<AudioTrack> audioTrackQueue = new LinkedBlockingQueue<>();
+    private final TaskScheduler taskScheduler;
+
+    private ScheduledFuture<?> scheduledLeaveTask;
 
     public void joinVoiceChannelOfUser(final User user) {
         if (guild.getAudioManager().isConnected()) {
@@ -68,20 +76,35 @@ public class GuildMusicPlayer {
         if (!audioPlayer.startTrack(audioTrack, true)) {
             audioTrackQueue.offer(audioTrack);
         }
+
+        cancelLeaveTask();
     }
 
     public void pause() {
         if (audioPlayer.getPlayingTrack() != null) {
             audioPlayer.setPaused(!audioPlayer.isPaused());
+
+            if (audioPlayer.isPaused()) {
+                scheduleLeaveTask();
+            }
+            else {
+                cancelLeaveTask();
+            }
         }
     }
 
     public void stop() {
         audioPlayer.stopTrack();
+
+        scheduleLeaveTask();
     }
 
     public void next() {
-        audioPlayer.startTrack(audioTrackQueue.poll(), false);
+        if (audioPlayer.startTrack(audioTrackQueue.poll(), false)) {
+            return;
+        }
+
+        scheduleLeaveTask();
     }
 
     public void clear() {
@@ -102,5 +125,27 @@ public class GuildMusicPlayer {
         return isConnectedToVoiceChannel() &&
                 guild.getAudioManager().getConnectedChannel().getMembers().stream()
                         .anyMatch(x -> Objects.equals(x.getUser(), user));
+    }
+
+    private void scheduleLeaveTask() {
+        if (scheduledLeaveTask == null) {
+            log.info("Scheduled leave task.");
+            scheduledLeaveTask = taskScheduler.schedule(
+                    this::leave,
+                    Instant.now().plus(SCHEDULE_LEAVE_MINUTES, ChronoUnit.MINUTES));
+        }
+    }
+
+    private void cancelLeaveTask() {
+        if (scheduledLeaveTask == null) {
+            return;
+        }
+
+        if (!scheduledLeaveTask.isCancelled() && !scheduledLeaveTask.isDone()) {
+            log.info("Cancelled scheduled leave task.");
+            scheduledLeaveTask.cancel(false);
+        }
+
+        scheduledLeaveTask = null;
     }
 }

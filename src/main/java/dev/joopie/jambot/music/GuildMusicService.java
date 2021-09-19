@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
+import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -19,6 +20,7 @@ import java.util.Map;
 public class GuildMusicService {
     private final AudioPlayerManager audioPlayerManager;
     private final Map<Long, GuildMusicPlayer> musicPlayerMap = new HashMap<>();
+    private final TaskScheduler taskScheduler;
 
     public void initializeGuildMusicService(final Guild guild) {
         if (musicPlayerMap.containsKey(guild.getIdLong())) {
@@ -29,7 +31,7 @@ public class GuildMusicService {
         AudioPlayer audioPlayer = audioPlayerManager.createPlayer();
         audioPlayer.setVolume(GuildMusicPlayer.VOLUME_MAX);
 
-        GuildMusicPlayer musicPlayer = new GuildMusicPlayer(guild, audioPlayer);
+        GuildMusicPlayer musicPlayer = new GuildMusicPlayer(guild, audioPlayer, taskScheduler);
 
         audioPlayer.addListener(new AudioPlayerListener(musicPlayer));
 
