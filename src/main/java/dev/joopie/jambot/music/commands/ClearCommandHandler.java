@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
-public class LeaveCommandHandler implements CommandHandler {
-    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(l|leave)$");
+public class ClearCommandHandler implements CommandHandler {
+    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(c|clear)$");
 
     private final GuildMusicService musicService;
 
@@ -26,9 +26,9 @@ public class LeaveCommandHandler implements CommandHandler {
     }
 
     @Override
-    public RestAction<?> handle(GuildMessageReceivedEvent event) {
+    public RestAction<?> handle(final GuildMessageReceivedEvent event) {
         try {
-            musicService.leave(event.getGuild(), event.getAuthor());
+            musicService.clear(event.getGuild(), event.getAuthor());
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {
             return MessageResponse.reply(event.getMessage(), exception.getMessage());
         }

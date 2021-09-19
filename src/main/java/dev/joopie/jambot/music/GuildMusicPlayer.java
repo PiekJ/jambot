@@ -10,10 +10,14 @@ import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -54,6 +58,8 @@ public class GuildMusicPlayer {
         if (isConnectedToVoiceChannel()) {
             throw new JambotMusicPlayerException("I'm already connected!");
         }
+
+        volume(100);
 
         guild.getAudioManager().openAudioConnection(voiceChannel);
 
@@ -109,6 +115,16 @@ public class GuildMusicPlayer {
 
     public void clear() {
         audioTrackQueue.clear();
+    }
+
+    public List<AudioTrack> getQueuedAudioTracks() {
+        if (audioPlayer.getPlayingTrack() == null) {
+            return Collections.emptyList();
+        }
+
+        List<AudioTrack> result = new ArrayList<>(audioTrackQueue);
+        result.add(0, audioPlayer.getPlayingTrack());
+        return result;
     }
 
     public void volume(int volume) {
