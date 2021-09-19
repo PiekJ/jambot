@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
@@ -41,8 +42,23 @@ public class JambotListener extends ListenerAdapter {
     }
 
     @Override
+    public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent event) {
+        if (event.getAuthor().isBot() || event.getAuthor().isSystem()) {
+            return;
+        }
+
+        log.info("[PRIVATE] Received message: %s"
+                .formatted(event.getMessage().getContentRaw()));
+    }
+
+    @Override
     public void onGuildMessageReceived(@NotNull final GuildMessageReceivedEvent event) {
-        log.info("Received message: %s".formatted(event.getMessage().getContentRaw()));
+        if (event.getAuthor().isBot() || event.getAuthor().isSystem()) {
+            return;
+        }
+
+        log.info("[%s] Received message: %s"
+                .formatted(event.getGuild().getName(), event.getMessage().getContentRaw()));
 
         commandHandlers.stream()
                 .filter(x -> x.shouldHandle(event))

@@ -16,13 +16,13 @@ import java.util.regex.Pattern;
 @Component
 @RequiredArgsConstructor
 public class NextCommandHandler implements CommandHandler {
-    private static final Pattern SHOULD_CHECK_PATTERN = Pattern.compile("^-(n|next)$");
+    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(n|next)$");
 
     private final GuildMusicService musicService;
 
     @Override
     public boolean shouldHandle(final GuildMessageReceivedEvent event) {
-        return SHOULD_CHECK_PATTERN.matcher(event.getMessage().getContentRaw()).matches();
+        return SHOULD_HANDLE_PATTERN.matcher(event.getMessage().getContentRaw()).matches();
     }
 
     @Override

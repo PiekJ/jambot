@@ -4,6 +4,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import dev.joopie.jambot.exceptions.JambotMusicPlayerException;
 import dev.joopie.jambot.exceptions.JambotMusicServiceException;
+import dev.joopie.jambot.music.dto.AudioTrackInfoDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
@@ -12,7 +13,10 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -104,6 +108,20 @@ public class GuildMusicService {
         assertUserInSameVoiceChannel(musicPlayer, user);
 
         musicPlayer.clear();
+    }
+
+    public List<AudioTrackInfoDto> getQueuedAudioTracks(Guild guild) {
+        GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+
+        AtomicInteger index = new AtomicInteger();
+        return musicPlayer.getQueuedAudioTracks().stream()
+                .map(x -> AudioTrackInfoDto.builder()
+                        .index(index.getAndIncrement())
+                        .author(x.getInfo().author)
+                        .title(x.getInfo().title)
+                        .duration(x.getInfo().length)
+                        .build())
+                .collect(Collectors.toList());
     }
 
     public void volume(Guild guild, User user, int volume) {
