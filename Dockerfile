@@ -10,6 +10,7 @@ RUN mvn -f /home/app/pom.xml clean package
 # Package stage
 #
 FROM openjdk:16-slim
+LABEL org.opencontainers.image.source="https://github.com/PiekJ/jambot"
 ENV JAVA_OPTS -server
 RUN mkdir -p /app
 COPY --from=build /home/app/target/*.jar /app/run.jar
