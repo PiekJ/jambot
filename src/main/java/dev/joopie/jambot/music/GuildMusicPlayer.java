@@ -17,12 +17,11 @@ import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
 public class GuildMusicPlayer {
-    public static final int VOLUME_MAX = 50;
+    private static final int VOLUME_MAX = 50;
     private static final int SCHEDULE_LEAVE_MINUTES = 5;
 
     private final Guild guild;
@@ -38,13 +37,13 @@ public class GuildMusicPlayer {
             throw new JambotMusicPlayerException("I'm already connected!");
         }
 
-        Member member = guild.getMemberById(user.getIdLong());
+        final Member member = guild.getMemberById(user.getIdLong());
         if (Objects.isNull(member)) {
             log.warn("User `%s` is not a member of guild `%s`.".formatted(user.getName(), guild.getName()));
             throw new JambotMusicPlayerException("It appears I can't find you on the server...");
         }
 
-        GuildVoiceState voiceState = member.getVoiceState();
+        final GuildVoiceState voiceState = member.getVoiceState();
 
         if (Objects.isNull(voiceState) || !voiceState.inVoiceChannel()) {
             log.warn("User `%s` is not in voice channel.".formatted(user.getName()));
@@ -127,6 +126,13 @@ public class GuildMusicPlayer {
         return result;
     }
 
+    public synchronized void shuffleQueuedAudioTracks() {
+        final List<AudioTrack> temp = new ArrayList<>(audioTrackQueue);
+        Collections.shuffle(temp);
+        audioTrackQueue.clear();
+        audioTrackQueue.addAll(temp);
+    }
+
     public void volume(int volume) {
         volume = Math.min(Math.max(volume, 0), 200);
         volume = (int) Math.floor(VOLUME_MAX / 100.0 * volume);
@@ -143,7 +149,7 @@ public class GuildMusicPlayer {
                         .anyMatch(x -> Objects.equals(x.getUser(), user));
     }
 
-    private void scheduleLeaveTask() {
+    private synchronized void scheduleLeaveTask() {
         if (scheduledLeaveTask == null) {
             log.info("Scheduled leave task.");
             scheduledLeaveTask = taskScheduler.schedule(
@@ -152,7 +158,7 @@ public class GuildMusicPlayer {
         }
     }
 
-    private void cancelLeaveTask() {
+    private synchronized void cancelLeaveTask() {
         if (scheduledLeaveTask == null) {
             return;
         }

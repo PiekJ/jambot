@@ -4,15 +4,15 @@ public class JambotCommandReaderException extends JambotException {
     public JambotCommandReaderException() {
     }
 
-    public JambotCommandReaderException(String message) {
+    public JambotCommandReaderException(final String message) {
         super(message);
     }
 
-    public JambotCommandReaderException(String message, Throwable cause) {
+    public JambotCommandReaderException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public JambotCommandReaderException(Throwable cause) {
+    public JambotCommandReaderException(final Throwable cause) {
         super(cause);
     }
 }

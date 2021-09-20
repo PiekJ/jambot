@@ -21,12 +21,12 @@ public class LeaveCommandHandler implements CommandHandler {
     private final GuildMusicService musicService;
 
     @Override
-    public boolean shouldHandle(GuildMessageReceivedEvent event) {
+    public boolean shouldHandle(final GuildMessageReceivedEvent event) {
         return SHOULD_HANDLE_PATTERN.matcher(event.getMessage().getContentRaw()).matches();
     }
 
     @Override
-    public RestAction<?> handle(GuildMessageReceivedEvent event) {
+    public RestAction<?> handle(final GuildMessageReceivedEvent event) {
         try {
             musicService.leave(event.getGuild(), event.getAuthor());
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {

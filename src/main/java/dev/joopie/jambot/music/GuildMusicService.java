@@ -32,10 +32,9 @@ public class GuildMusicService {
             return;
         }
 
-        AudioPlayer audioPlayer = audioPlayerManager.createPlayer();
-        audioPlayer.setVolume(GuildMusicPlayer.VOLUME_MAX);
+        final AudioPlayer audioPlayer = audioPlayerManager.createPlayer();
 
-        GuildMusicPlayer musicPlayer = new GuildMusicPlayer(guild, audioPlayer, taskScheduler);
+        final GuildMusicPlayer musicPlayer = new GuildMusicPlayer(guild, audioPlayer, taskScheduler);
 
         audioPlayer.addListener(new AudioPlayerListener(musicPlayer));
 
@@ -43,7 +42,7 @@ public class GuildMusicService {
     }
 
     public void destroyGuildMusicService(final Guild guild) {
-        GuildMusicPlayer musicPlayer = musicPlayerMap.remove(guild.getIdLong());
+        final GuildMusicPlayer musicPlayer = musicPlayerMap.remove(guild.getIdLong());
 
         if (musicPlayer == null) {
             log.warn("Whaaat? How can we destroy something we expected to be there when it's not?!");
@@ -53,8 +52,8 @@ public class GuildMusicService {
         musicPlayer.leave();
     }
 
-    public void leave(Guild guild, User user) {
-        GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+    public void leave(final Guild guild, final User user) {
+        final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
 
         assertConnectedToVoiceChannel(musicPlayer);
         assertUserInSameVoiceChannel(musicPlayer, user);
@@ -62,8 +61,8 @@ public class GuildMusicService {
         musicPlayer.leave();
     }
 
-    public void play(Guild guild, User user, String input) {
-        GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+    public void play(final Guild guild, final User user, final String input) {
+        final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
 
         if (musicPlayer.isConnectedToVoiceChannel()) {
             assertUserInSameVoiceChannel(musicPlayer, user);
@@ -74,8 +73,8 @@ public class GuildMusicService {
         audioPlayerManager.loadItemOrdered(musicPlayer, input, new AudioTrackLoadResultHandler(musicPlayer));
     }
 
-    public void pause(Guild guild, User user) {
-        GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+    public void pause(final Guild guild, final User user) {
+        final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
 
         assertConnectedToVoiceChannel(musicPlayer);
         assertUserInSameVoiceChannel(musicPlayer, user);
@@ -83,8 +82,8 @@ public class GuildMusicService {
         musicPlayer.pause();
     }
 
-    public void stop(Guild guild, User user) {
-        GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+    public void stop(final Guild guild, final User user) {
+        final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
 
         assertConnectedToVoiceChannel(musicPlayer);
         assertUserInSameVoiceChannel(musicPlayer, user);
@@ -92,8 +91,8 @@ public class GuildMusicService {
         musicPlayer.stop();
     }
 
-    public void next(Guild guild, User user) {
-        GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+    public void next(final Guild guild, final User user) {
+        final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
 
         assertConnectedToVoiceChannel(musicPlayer);
         assertUserInSameVoiceChannel(musicPlayer, user);
@@ -101,8 +100,8 @@ public class GuildMusicService {
         musicPlayer.next();
     }
 
-    public void clear(Guild guild, User user) {
-        GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+    public void clear(final Guild guild, final User user) {
+        final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
 
         assertConnectedToVoiceChannel(musicPlayer);
         assertUserInSameVoiceChannel(musicPlayer, user);
@@ -110,10 +109,10 @@ public class GuildMusicService {
         musicPlayer.clear();
     }
 
-    public List<AudioTrackInfoDto> getQueuedAudioTracks(Guild guild) {
-        GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+    public List<AudioTrackInfoDto> getQueuedAudioTracks(final Guild guild) {
+        final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
 
-        AtomicInteger index = new AtomicInteger();
+        final AtomicInteger index = new AtomicInteger();
         return musicPlayer.getQueuedAudioTracks().stream()
                 .map(x -> AudioTrackInfoDto.builder()
                         .index(index.getAndIncrement())
@@ -124,8 +123,17 @@ public class GuildMusicService {
                 .collect(Collectors.toList());
     }
 
-    public void volume(Guild guild, User user, int volume) {
-        GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+    public void shuffleQueuedAudioTracks(final Guild guild, final User user) {
+        final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+
+        assertConnectedToVoiceChannel(musicPlayer);
+        assertUserInSameVoiceChannel(musicPlayer, user);
+
+        musicPlayer.shuffleQueuedAudioTracks();
+    }
+
+    public void volume(final Guild guild, final User user, final int volume) {
+        final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
 
         assertConnectedToVoiceChannel(musicPlayer);
         assertUserInSameVoiceChannel(musicPlayer, user);
