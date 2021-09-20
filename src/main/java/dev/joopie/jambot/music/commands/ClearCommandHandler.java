@@ -21,7 +21,7 @@ public class ClearCommandHandler implements CommandHandler {
     private final GuildMusicService musicService;
 
     @Override
-    public boolean shouldHandle(GuildMessageReceivedEvent event) {
+    public boolean shouldHandle(final GuildMessageReceivedEvent event) {
         return SHOULD_HANDLE_PATTERN.matcher(event.getMessage().getContentRaw()).matches();
     }
 

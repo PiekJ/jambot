@@ -4,15 +4,15 @@ public class JambotMusicPlayerException extends JambotException {
     public JambotMusicPlayerException() {
     }
 
-    public JambotMusicPlayerException(String message) {
+    public JambotMusicPlayerException(final String message) {
         super(message);
     }
 
-    public JambotMusicPlayerException(String message, Throwable cause) {
+    public JambotMusicPlayerException(final String message, final Throwable cause) {
         super(message, cause);
     }
 
-    public JambotMusicPlayerException(Throwable cause) {
+    public JambotMusicPlayerException(final Throwable cause) {
         super(cause);
     }
 }

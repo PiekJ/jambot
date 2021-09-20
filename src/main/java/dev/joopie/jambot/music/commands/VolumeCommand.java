@@ -29,7 +29,7 @@ public class VolumeCommand implements CommandHandler {
 
     @Override
     public RestAction<?> handle(final GuildMessageReceivedEvent event) {
-        Matcher matcher = INPUT_PATTERN.matcher(event.getMessage().getContentRaw());
+        final Matcher matcher = INPUT_PATTERN.matcher(event.getMessage().getContentRaw());
         if (!matcher.matches()) {
             return MessageResponse.reply(event.getMessage(), "Provide volume (0%-200%). Syntax `-v <volume>`.");
         }

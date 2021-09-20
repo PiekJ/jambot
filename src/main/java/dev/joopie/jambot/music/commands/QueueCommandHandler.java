@@ -20,18 +20,18 @@ import java.util.regex.Pattern;
 @Component
 @RequiredArgsConstructor
 public class QueueCommandHandler implements CommandHandler {
-    private static final int FIELD_VALUE_MAX_LENGTH = 65;
+    private static final int FIELD_VALUE_MAX_LENGTH = 66;
     private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(q|queue)$");
 
     private final GuildMusicService musicService;
 
     @Override
-    public boolean shouldHandle(GuildMessageReceivedEvent event) {
+    public boolean shouldHandle(final GuildMessageReceivedEvent event) {
         return SHOULD_HANDLE_PATTERN.matcher(event.getMessage().getContentRaw()).matches();
     }
 
     @Override
-    public RestAction<?> handle(GuildMessageReceivedEvent event) {
+    public RestAction<?> handle(final GuildMessageReceivedEvent event) {
         final List<AudioTrackInfoDto> dtos = musicService.getQueuedAudioTracks(event.getGuild());
 
         final EmbedBuilder builder = new EmbedBuilder();
@@ -73,10 +73,12 @@ public class QueueCommandHandler implements CommandHandler {
 
             trackNameStringBuilder
                     .append(stringWithMaxLength(
-                            "%02d) %s : %s\r\n".formatted(dto.getIndex(), dto.getAuthor(), dto.getTitle()),
-                            FIELD_VALUE_MAX_LENGTH));
+                            "%02d) %s : %s".formatted(dto.getIndex(), dto.getAuthor(), dto.getTitle()),
+                            FIELD_VALUE_MAX_LENGTH))
+                    .append("\r\n");
             trackDurationStringBuilder
-                    .append("%s\r\n".formatted(formatMillisToHumanTime(dto.getDuration())));
+                    .append("%s".formatted(formatMillisToHumanTime(dto.getDuration())))
+                    .append("\r\n");
         }
 
         builder.addField("Track List", trackNameStringBuilder.toString(), true);

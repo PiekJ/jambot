@@ -11,14 +11,12 @@ import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.springframework.stereotype.Component;
 
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
-public class PlayCommandHandler implements CommandHandler {
-    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(p|play).*$");
-    private static final Pattern INPUT_PATTERN = Pattern.compile("^-(p|play) (?<input>.*)$");
+public class ShuffleCommandHandler implements CommandHandler {
+    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-shuffle$");
 
     private final GuildMusicService musicService;
 
@@ -28,15 +26,9 @@ public class PlayCommandHandler implements CommandHandler {
     }
 
     @Override
-    public RestAction<?> handle(final GuildMessageReceivedEvent event) {
-        final Matcher matcher = INPUT_PATTERN.matcher(event.getMessage().getContentRaw());
-        if (!matcher.matches()) {
-            return MessageResponse.reply(event.getMessage(), "Provide YouTube url. Syntax `-p <youtube-url>`.");
-        }
-
+    public RestAction<?> handle(GuildMessageReceivedEvent event) {
         try {
-            final String input = matcher.group("input");
-            musicService.play(event.getGuild(), event.getAuthor(), input);
+            musicService.shuffleQueuedAudioTracks(event.getGuild(), event.getAuthor());
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {
             return MessageResponse.reply(event.getMessage(), exception.getMessage());
         }

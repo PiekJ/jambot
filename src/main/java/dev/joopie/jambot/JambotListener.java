@@ -42,7 +42,7 @@ public class JambotListener extends ListenerAdapter {
     }
 
     @Override
-    public void onPrivateMessageReceived(@NotNull PrivateMessageReceivedEvent event) {
+    public void onPrivateMessageReceived(@NotNull final PrivateMessageReceivedEvent event) {
         if (event.getAuthor().isBot() || event.getAuthor().isSystem()) {
             return;
         }
