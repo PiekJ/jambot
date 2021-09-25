@@ -68,7 +68,16 @@ public class GuildMusicPlayer {
     }
 
     public void leave() {
+        leave(false);
+    }
+
+    public void leave(final boolean scheduleTask) {
         if (isConnectedToVoiceChannel()) {
+            if (scheduleTask) {
+                scheduleLeaveTask();
+                return;
+            }
+
             guild.getAudioManager().closeAudioConnection();
             audioPlayer.checkCleanup(0);
             clear();
@@ -137,6 +146,11 @@ public class GuildMusicPlayer {
         volume = Math.min(Math.max(volume, 0), 200);
         volume = (int) Math.floor(VOLUME_MAX / 100.0 * volume);
         audioPlayer.setVolume(volume);
+    }
+
+    public boolean isLeftAloneInVoiceChannel() {
+        return isConnectedToVoiceChannel() &&
+                guild.getAudioManager().getConnectedChannel().getMembers().size() <= 1;
     }
 
     public boolean isConnectedToVoiceChannel() {

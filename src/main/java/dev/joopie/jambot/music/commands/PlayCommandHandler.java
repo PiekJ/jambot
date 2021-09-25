@@ -1,6 +1,6 @@
 package dev.joopie.jambot.music.commands;
 
-import dev.joopie.jambot.api.youtube.YouTubeService;
+import dev.joopie.jambot.api.youtube.ApiYouTubeService;
 import dev.joopie.jambot.api.youtube.dto.SearchResultDto;
 import dev.joopie.jambot.command.CommandHandler;
 import dev.joopie.jambot.exceptions.JambotMusicPlayerException;
@@ -25,10 +25,10 @@ import java.util.regex.Pattern;
 public class PlayCommandHandler implements CommandHandler {
     private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(p|play).*$");
     private static final Pattern INPUT_PATTERN = Pattern.compile("^-(p|play) (?<input>.*)$");
-    private static final Pattern URL_PATTERN = Pattern.compile("^http(|s)://");
+    private static final Pattern URL_PATTERN = Pattern.compile("^http(|s)://.*$");
 
     private final GuildMusicService musicService;
-    private final YouTubeService youTubeService;
+    private final ApiYouTubeService apiYouTubeService;
 
     @Override
     public boolean shouldHandle(final GuildMessageReceivedEvent event) {
@@ -39,7 +39,7 @@ public class PlayCommandHandler implements CommandHandler {
     public RestAction<?> handle(final GuildMessageReceivedEvent event) {
         final Matcher matcher = INPUT_PATTERN.matcher(event.getMessage().getContentRaw());
         if (!matcher.matches()) {
-            return MessageResponse.reply(event.getMessage(), "Provide YouTube url. Syntax `-p <youtube-url, search term, youtube video id>`.");
+            return MessageResponse.reply(event.getMessage(), "Provide YouTube url. Syntax `-p <youtube-url, search term>`.");
         }
 
         try {
@@ -49,7 +49,7 @@ public class PlayCommandHandler implements CommandHandler {
                 musicService.play(event.getGuild(), event.getAuthor(), input);
             }
             else {
-                final SearchResultDto dto = youTubeService.searchForSong(input);
+                final SearchResultDto dto = apiYouTubeService.searchForSong(input);
                 if (dto.isFound()) {
                     musicService.play(event.getGuild(), event.getAuthor(), dto.getVideoId());
                     return MessageResponse.reply(

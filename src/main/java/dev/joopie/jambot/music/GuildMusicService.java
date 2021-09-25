@@ -52,6 +52,14 @@ public class GuildMusicService {
         musicPlayer.leave();
     }
 
+    public void leaveWhenLeftAlone(final Guild guild) {
+        final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
+
+        if (musicPlayer.isLeftAloneInVoiceChannel()) {
+            musicPlayer.leave(true);
+        }
+    }
+
     public void leave(final Guild guild, final User user) {
         final GuildMusicPlayer musicPlayer = getAudioPlayer(guild);
 
