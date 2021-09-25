@@ -7,7 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.GuildReadyEvent;
-import net.dv8tion.jda.api.events.interaction.ButtonClickEvent;
+import net.dv8tion.jda.api.events.guild.voice.GuildVoiceLeaveEvent;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.priv.PrivateMessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -40,6 +40,11 @@ public class JambotListener extends ListenerAdapter {
     public void onGuildLeave(@NotNull final GuildLeaveEvent event) {
         guildMusicService.destroyGuildMusicService(event.getGuild());
         log.info("Left guild `%s`.".formatted(event.getGuild().getName()));
+    }
+
+    @Override
+    public void onGuildVoiceLeave(@NotNull final GuildVoiceLeaveEvent event) {
+        guildMusicService.leaveWhenLeftAlone(event.getGuild());
     }
 
     @Override

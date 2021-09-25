@@ -19,12 +19,13 @@ import org.springframework.stereotype.Service;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 import java.util.Optional;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class YouTubeService {
+public class ApiYouTubeService {
     private final static String SEARCH_URL = "https://youtube.googleapis.com/youtube/v3/search"
             + "?part=id%%2Csnippet&maxResults=1&order=relevance&q=%s&regionCode=nl&topicId=%%2Fm%%2F04rlf"
             + "&type=video&videoDefinition=high&key=%s";
@@ -45,7 +46,7 @@ public class YouTubeService {
                         .map(this::mapHttpEntityToSearchResponse)
                         .flatMap(x -> x.getItems().stream().findFirst())
                         .map(this::mapSearchResponseItemToSearchResult)
-                        .orElseThrow(JambotYouTubeException::new);
+                        .orElseThrow(() -> new JambotYouTubeException("Did not find any search result."));
             } else {
                 log.warn("Invalid http response status (%s) returned."
                         .formatted(response.getStatusLine().getStatusCode()));
@@ -73,7 +74,19 @@ public class YouTubeService {
                 .videoId(item.getId().getVideoId())
                 .title(item.getSnippet().getTitle())
                 .description(item.getSnippet().getDescription())
-                .thumbnailUrl(item.getSnippet().getThumbnails().get("default").getUrl())
+                .thumbnailUrl(getHighestQualityThumbnail(item.getSnippet()).getUrl())
                 .build();
+    }
+
+    private static SearchResponse.Thumbnail getHighestQualityThumbnail(final SearchResponse.Snippet snippet) {
+        final Map<String, SearchResponse.Thumbnail> thumbnails = snippet.getThumbnails();
+
+        if (thumbnails.containsKey("high")) {
+            return thumbnails.get("high");
+        } else if (thumbnails.containsKey("medium")) {
+            return thumbnails.get("medium");
+        }
+
+        return thumbnails.get("default");
     }
 }
