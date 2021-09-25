@@ -52,7 +52,7 @@ public class ApiYouTubeService {
                         .formatted(response.getStatusLine().getStatusCode()));
             }
         } catch (IOException exception) {
-            log.warn("YouTube did a oepsie.", exception);
+            log.warn("YouTube did an oepsie.", exception);
         }
 
         return SearchResultDto.builder()
