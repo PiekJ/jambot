@@ -25,7 +25,7 @@ import java.util.regex.Pattern;
 public class PlayCommandHandler implements CommandHandler {
     private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(p|play).*$");
     private static final Pattern INPUT_PATTERN = Pattern.compile("^-(p|play) (?<input>.*)$");
-    private static final Pattern URL_PATTERN = Pattern.compile("^http(|s)://.*$");
+    private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
 
     private final GuildMusicService musicService;
     private final ApiYouTubeService apiYouTubeService;
@@ -45,7 +45,7 @@ public class PlayCommandHandler implements CommandHandler {
         try {
             final String input = matcher.group("input");
 
-            if (URL_PATTERN.matcher(input).matches()) {
+            if (URL_OR_ID_PATTERN.matcher(input).matches()) {
                 musicService.play(event.getGuild(), event.getAuthor(), input);
             }
             else {
