@@ -6,7 +6,6 @@ import dev.joopie.jambot.music.dto.AudioTrackInfoDto;
 import dev.joopie.jambot.response.MessageResponse;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.springframework.stereotype.Component;
@@ -50,13 +49,19 @@ public class QueueCommandHandler implements CommandHandler {
                 .formatted(
                         dtos.size(),
                         formatMillisToHumanTime(dtos.stream()
-                                .mapToLong(AudioTrackInfoDto::getDuration).sum())));
+                                .mapToLong(AudioTrackInfoDto::getPlayTimeLeft)
+                                .sum())));
 
         final AudioTrackInfoDto currentlyPlayingDto = dtos.remove(0);
 
         builder.addField(
                 "Currently Playing",
                 "%s : %s".formatted(currentlyPlayingDto.getAuthor(), currentlyPlayingDto.getTitle()),
+                false);
+
+        builder.addField(
+                "Play Time Left",
+                formatMillisToHumanTime(currentlyPlayingDto.getPlayTimeLeft()),
                 false);
 
         if (dtos.isEmpty()) {
@@ -77,7 +82,7 @@ public class QueueCommandHandler implements CommandHandler {
                             FIELD_VALUE_MAX_LENGTH))
                     .append("\r\n");
             trackDurationStringBuilder
-                    .append("%s".formatted(formatMillisToHumanTime(dto.getDuration())))
+                    .append(formatMillisToHumanTime(dto.getDuration()))
                     .append("\r\n");
         }
 
