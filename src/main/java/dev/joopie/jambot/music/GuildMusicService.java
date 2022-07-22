@@ -126,7 +126,8 @@ public class GuildMusicService {
                         .index(index.getAndIncrement())
                         .author(x.getInfo().author)
                         .title(x.getInfo().title)
-                        .duration(x.getInfo().length)
+                        .duration(x.getDuration())
+                        .position(x.getPosition())
                         .build())
                 .collect(Collectors.toList());
     }

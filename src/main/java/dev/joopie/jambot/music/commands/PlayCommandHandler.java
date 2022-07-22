@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 @Component
 @RequiredArgsConstructor
 public class PlayCommandHandler implements CommandHandler {
-    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(p|play).*$");
+    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(p|play)");
     private static final Pattern INPUT_PATTERN = Pattern.compile("^-(p|play) (?<input>.*)$");
     private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
 
@@ -32,7 +32,7 @@ public class PlayCommandHandler implements CommandHandler {
 
     @Override
     public boolean shouldHandle(final GuildMessageReceivedEvent event) {
-        return SHOULD_HANDLE_PATTERN.matcher(event.getMessage().getContentRaw()).matches();
+        return SHOULD_HANDLE_PATTERN.matcher(event.getMessage().getContentRaw()).find();
     }
 
     @Override

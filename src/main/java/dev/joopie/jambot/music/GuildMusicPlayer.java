@@ -39,8 +39,8 @@ public class GuildMusicPlayer {
 
         final Member member = guild.getMemberById(user.getIdLong());
         if (Objects.isNull(member)) {
-            log.warn("User `%s` is not a member of guild `%s`.".formatted(user.getName(), guild.getName()));
-            throw new JambotMusicPlayerException("It appears I can't find you on the server...");
+            log.warn("User `%s` is not a member of guild `%s` or not joined any voice channel.".formatted(user.getName(), guild.getName()));
+            throw new JambotMusicPlayerException("It appears I can't find you on a voice channel in the server...");
         }
 
         final GuildVoiceState voiceState = member.getVoiceState();

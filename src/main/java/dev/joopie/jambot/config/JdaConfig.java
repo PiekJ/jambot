@@ -19,8 +19,7 @@ public class JdaConfig {
     @Bean
     public JDA jda(final JdaProperties properties, final JambotListener listener) throws LoginException {
         return JDABuilder.createDefault(properties.getToken())
-                .enableIntents(GatewayIntent.GUILD_MEMBERS, GatewayIntent.GUILD_VOICE_STATES)
-                .setMemberCachePolicy(MemberCachePolicy.ALL)
+                .setMemberCachePolicy(MemberCachePolicy.VOICE)
                 .addEventListeners(listener)
                 .setActivity(Activity.playing("some music"))
                 .build();

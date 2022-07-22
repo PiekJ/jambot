@@ -12,4 +12,9 @@ public class AudioTrackInfoDto {
     private final String author;
     private final String title;
     private final long duration;
+    private final long position;
+
+    public long getPlayTimeLeft() {
+        return duration - position;
+    }
 }
