@@ -5,17 +5,20 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.5.4</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<version>2.7.2</version>
+		<relativePath/>
 	</parent>
+
 	<groupId>dev.joopie</groupId>
 	<artifactId>jambot</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>jambot</name>
 	<description>Jambox bot for Discord</description>
+
 	<properties>
-		<java.version>16</java.version>
+		<java.version>18</java.version>
 	</properties>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -23,15 +26,15 @@
 		</dependency>
 
 		<dependency>
-			<groupId>com.sedmelluq</groupId>
-			<artifactId>lavaplayer</artifactId>
-			<version>1.3.78</version>
+			<groupId>com.github.walkyst</groupId>
+			<artifactId>lavaplayer-fork</artifactId>
+			<version>1.3.98.1</version>
 		</dependency>
 
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>4.3.0_324</version>
+			<version>4.4.0_350</version>
 		</dependency>
 
 		<dependency>
@@ -39,6 +42,7 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
@@ -51,6 +55,10 @@
 			<id>dv8tion</id>
 			<name>m2-dv8tion</name>
 			<url>https://m2.dv8tion.net/releases</url>
+		</repository>
+		<repository>
+			<id>jitpack</id>
+			<url>https://jitpack.io</url>
 		</repository>
 	</repositories>
 
@@ -70,5 +78,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
 </project>
