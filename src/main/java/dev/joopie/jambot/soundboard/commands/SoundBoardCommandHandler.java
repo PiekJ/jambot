@@ -26,7 +26,7 @@ public class SoundBoardCommandHandler implements CommandHandler {
 
     @Override
     public boolean shouldHandle(final GuildMessageReceivedEvent event) {
-        return SHOULD_HANDLE_PATTERN.matcher(event.getMessage().getContentRaw()).matches();
+        return SHOULD_HANDLE_PATTERN.matcher(event.getMessage().getContentRaw()).find();
     }
 
     @Override
