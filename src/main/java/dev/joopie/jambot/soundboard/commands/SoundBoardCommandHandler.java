@@ -19,7 +19,7 @@ import java.util.regex.Pattern;
 @Component
 @RequiredArgsConstructor
 public class SoundBoardCommandHandler implements CommandHandler {
-    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(sb|soundboard).*");
+    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(sb|soundboard)");
     private static final Pattern INPUT_PATTERN = Pattern.compile("^-(sb|soundboard) (?<input>.*)$");
 
     private final SoundBoardService soundBoardService;
