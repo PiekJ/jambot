@@ -1,7 +1,7 @@
 #
 # Build stage
 #
-FROM maven:3-openjdk-18-slim AS build
+FROM maven:3-openjdk-19-slim AS build
 COPY src /home/app/src
 COPY pom.xml /home/app
 RUN mvn -f /home/app/pom.xml clean package
@@ -9,7 +9,7 @@ RUN mvn -f /home/app/pom.xml clean package
 #
 # Package stage
 #
-FROM openjdk:18-slim
+FROM openjdk:19-slim
 LABEL org.opencontainers.image.source="https://github.com/PiekJ/jambot"
 ENV TZ=Europe/Amsterdam
 ENV JAVA_OPTS -server
