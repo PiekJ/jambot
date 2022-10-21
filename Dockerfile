@@ -14,9 +14,7 @@ LABEL org.opencontainers.image.source="https://github.com/PiekJ/jambot"
 ENV TZ=Europe/Amsterdam
 ENV JAVA_OPTS -server
 EXPOSE 8080
-RUN apt update \
-    && apt install -y --no-install-recommends curl \
-    && rm -rf /var/lib/apt/lists/* \
+RUN apk --no-cache add curl \
     && mkdir -p /app
 COPY --from=build /home/app/target/*.jar /app/run.jar
 WORKDIR /app
