@@ -34,12 +34,12 @@ public class ApiYouTubeService {
     private final ObjectMapper objectMapper;
 
     public SearchResultDto searchForSong(final String input) {
-        final String encodedInput = URLEncoder.encode(input, StandardCharsets.UTF_8);
-        final HttpUriRequest request = RequestBuilder.get(SEARCH_URL.formatted(encodedInput, properties.getToken()))
+        final var encodedInput = URLEncoder.encode(input, StandardCharsets.UTF_8);
+        final var request = RequestBuilder.get(SEARCH_URL.formatted(encodedInput, properties.getToken()))
                 .build();
 
-        try (CloseableHttpClient client = HttpClients.createDefault();
-             CloseableHttpResponse response = client.execute(request)) {
+        try (final var client = HttpClients.createDefault();
+             final var response = client.execute(request)) {
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 return Optional.ofNullable(response.getEntity())
@@ -79,7 +79,7 @@ public class ApiYouTubeService {
     }
 
     private static SearchResponse.Thumbnail getHighestQualityThumbnail(final SearchResponse.Snippet snippet) {
-        final Map<String, SearchResponse.Thumbnail> thumbnails = snippet.getThumbnails();
+        final var thumbnails = snippet.getThumbnails();
 
         if (thumbnails.containsKey("high")) {
             return thumbnails.get("high");

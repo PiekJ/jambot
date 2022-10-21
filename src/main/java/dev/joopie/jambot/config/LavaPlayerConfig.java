@@ -10,9 +10,8 @@ import org.springframework.context.annotation.Configuration;
 public class LavaPlayerConfig {
     @Bean
     public AudioPlayerManager audioPlayerManager() {
-        final DefaultAudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+        final var playerManager = new DefaultAudioPlayerManager();
         AudioSourceManagers.registerRemoteSources(playerManager);
-        AudioSourceManagers.registerLocalSource(playerManager);
         return playerManager;
     }
 }

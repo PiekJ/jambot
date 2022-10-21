@@ -6,6 +6,8 @@ import dev.joopie.jambot.exceptions.JambotMusicPlayerException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Instant;
@@ -37,15 +39,17 @@ public class GuildMusicPlayer {
             throw new JambotMusicPlayerException("I'm already connected!");
         }
 
-        final Member member = guild.getMemberById(user.getIdLong());
+        final var member = guild.getMemberById(user.getIdLong());
         if (Objects.isNull(member)) {
-            log.warn("User `%s` is not a member of guild `%s` or not joined any voice channel.".formatted(user.getName(), guild.getName()));
+            log.warn("User `%s` is not a member of guild `%s` or not joined any voice channel.".formatted(
+                    user.getName(),
+                    guild.getName()));
             throw new JambotMusicPlayerException("It appears I can't find you on a voice channel in the server...");
         }
 
-        final GuildVoiceState voiceState = member.getVoiceState();
+        final var voiceState = member.getVoiceState();
 
-        if (Objects.isNull(voiceState) || !voiceState.inVoiceChannel()) {
+        if (Objects.isNull(voiceState) || !voiceState.inAudioChannel()) {
             log.warn("User `%s` is not in voice channel.".formatted(user.getName()));
             throw new JambotMusicPlayerException("Are you sure you're in a voice channel, yes?");
         }
@@ -53,7 +57,7 @@ public class GuildMusicPlayer {
         join(voiceState.getChannel());
     }
 
-    public void join(final VoiceChannel voiceChannel) {
+    public void join(final AudioChannelUnion voiceChannel) {
         if (isConnectedToVoiceChannel()) {
             throw new JambotMusicPlayerException("I'm already connected!");
         }
@@ -130,13 +134,13 @@ public class GuildMusicPlayer {
             return Collections.emptyList();
         }
 
-        List<AudioTrack> result = new ArrayList<>(audioTrackQueue);
+        final var result = new ArrayList<>(audioTrackQueue);
         result.add(0, audioPlayer.getPlayingTrack());
         return result;
     }
 
     public synchronized void shuffleQueuedAudioTracks() {
-        final List<AudioTrack> temp = new ArrayList<>(audioTrackQueue);
+        final var temp = new ArrayList<>(audioTrackQueue);
         Collections.shuffle(temp);
         audioTrackQueue.clear();
         audioTrackQueue.addAll(temp);

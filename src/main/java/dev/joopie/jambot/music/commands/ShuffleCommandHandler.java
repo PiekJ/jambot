@@ -4,35 +4,46 @@ import dev.joopie.jambot.command.CommandHandler;
 import dev.joopie.jambot.exceptions.JambotMusicPlayerException;
 import dev.joopie.jambot.exceptions.JambotMusicServiceException;
 import dev.joopie.jambot.music.GuildMusicService;
-import dev.joopie.jambot.response.MessageResponse;
-import dev.joopie.jambot.response.ReactionResponse;
 import lombok.RequiredArgsConstructor;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
+import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.springframework.stereotype.Component;
-
-import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
 public class ShuffleCommandHandler implements CommandHandler {
-    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-shuffle$");
+    private static final String COMMAND_NAME = "shuffle";
 
     private final GuildMusicService musicService;
 
     @Override
-    public boolean shouldHandle(final GuildMessageReceivedEvent event) {
-        return SHOULD_HANDLE_PATTERN.matcher(event.getMessage().getContentRaw()).matches();
+    public Command.Type type() {
+        return Command.Type.SLASH;
     }
 
     @Override
-    public RestAction<?> handle(GuildMessageReceivedEvent event) {
-        try {
-            musicService.shuffleQueuedAudioTracks(event.getGuild(), event.getAuthor());
-        } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {
-            return MessageResponse.reply(event.getMessage(), exception.getMessage());
-        }
+    public CommandData registerCommand() {
+        return Commands.slash(COMMAND_NAME, "Shuffle all tracks currently queued");
+    }
 
-        return ReactionResponse.ok(event.getMessage());
+    @Override
+    public boolean shouldHandle(final CommandInteractionPayload event) {
+        return COMMAND_NAME.equals(event.getName());
+    }
+
+    @Override
+    public RestAction<?> handle(final CommandInteraction event) {
+        try {
+            musicService.shuffleQueuedAudioTracks(event.getGuild(), event.getUser());
+
+            return event.reply("Ok, we'll shuffle it all!!");
+        } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {
+            return event.reply(exception.getMessage())
+                    .setEphemeral(true);
+        }
     }
 }
