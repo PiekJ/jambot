@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class SoundBoardService {
+public class SoundboardService {
     private final GuildMusicService musicService;
     private final ApiSoundBoardService apiSoundBoardService;
     private final Random random;
@@ -28,7 +28,7 @@ public class SoundBoardService {
 
     @PostConstruct
     public void postConstruct() {
-        final List<SoundAuthorDto> dtos = apiSoundBoardService.fetchSoundBoardSounds();
+        final var dtos = apiSoundBoardService.fetchSoundBoardSounds();
         soundAuthors = dtos.stream().collect(Collectors.toMap(
                 SoundAuthorDto::getAuthorName,
                 x -> SoundAuthor.builder()
@@ -39,9 +39,15 @@ public class SoundBoardService {
                         .build()));
     }
 
+    public List<String> autocompleteAuthorStartWith(final String authorStartWith) {
+        return soundAuthors.keySet().stream()
+                .filter(x -> x.startsWith(authorStartWith))
+                .toList();
+    }
+
     public void playRandomSoundByAuthor(final Guild guild, final User user, final String authorName) {
         if (soundAuthors.containsKey(authorName)) {
-            final String soundUrl = soundAuthors.get(authorName).getRandomSoundUrl(random);
+            final var soundUrl = soundAuthors.get(authorName).getRandomSoundUrl(random);
             log.info("SoundBoard %s track %s".formatted(authorName, soundUrl));
             musicService.play(guild, user, soundUrl);
         } else {

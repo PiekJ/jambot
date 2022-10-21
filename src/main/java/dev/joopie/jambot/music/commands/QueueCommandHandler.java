@@ -3,10 +3,13 @@ package dev.joopie.jambot.music.commands;
 import dev.joopie.jambot.command.CommandHandler;
 import dev.joopie.jambot.music.GuildMusicService;
 import dev.joopie.jambot.music.dto.AudioTrackInfoDto;
-import dev.joopie.jambot.response.MessageResponse;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.events.message.guild.GuildMessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
+import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.springframework.stereotype.Component;
 
@@ -14,26 +17,36 @@ import java.awt.*;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Component
 @RequiredArgsConstructor
 public class QueueCommandHandler implements CommandHandler {
     private static final int FIELD_VALUE_MAX_LENGTH = 66;
-    private static final Pattern SHOULD_HANDLE_PATTERN = Pattern.compile("^-(q|queue)$");
+
+    private static final String COMMAND_NAME = "queue";
 
     private final GuildMusicService musicService;
 
     @Override
-    public boolean shouldHandle(final GuildMessageReceivedEvent event) {
-        return SHOULD_HANDLE_PATTERN.matcher(event.getMessage().getContentRaw()).matches();
+    public Command.Type type() {
+        return Command.Type.SLASH;
     }
 
     @Override
-    public RestAction<?> handle(final GuildMessageReceivedEvent event) {
-        final List<AudioTrackInfoDto> dtos = musicService.getQueuedAudioTracks(event.getGuild());
+    public CommandData registerCommand() {
+        return Commands.slash(COMMAND_NAME, "List all tracks currently queued");
+    }
 
-        final EmbedBuilder builder = new EmbedBuilder();
+    @Override
+    public boolean shouldHandle(final CommandInteractionPayload event) {
+        return COMMAND_NAME.equals(event.getName());
+    }
+
+    @Override
+    public RestAction<?> handle(final CommandInteraction event) {
+        final var dtos = musicService.getQueuedAudioTracks(event.getGuild());
+
+        final var builder = new EmbedBuilder();
         builder.setColor(new Color(0x0099FF));
         builder.setTitle("%s's Track Queue List".formatted(event.getGuild().getName()));
         builder.setTimestamp(OffsetDateTime.now());
@@ -41,7 +54,7 @@ public class QueueCommandHandler implements CommandHandler {
         if (dtos.isEmpty()) {
             builder.setDescription("Currently no tracks playing...");
 
-            return MessageResponse.reply(event.getMessage(), builder.build());
+            return event.replyEmbeds(builder.build());
         }
 
         builder.setDescription("Current tracks in the queue in order:");
@@ -52,7 +65,7 @@ public class QueueCommandHandler implements CommandHandler {
                                 .mapToLong(AudioTrackInfoDto::getPlayTimeLeft)
                                 .sum())));
 
-        final AudioTrackInfoDto currentlyPlayingDto = dtos.remove(0);
+        final var currentlyPlayingDto = dtos.remove(0);
 
         builder.addField(
                 "Currently Playing",
@@ -65,13 +78,13 @@ public class QueueCommandHandler implements CommandHandler {
                 false);
 
         if (dtos.isEmpty()) {
-            return MessageResponse.reply(event.getMessage(), builder.build());
+            return event.replyEmbeds(builder.build());
         }
 
-        final StringBuilder trackNameStringBuilder = new StringBuilder();
-        final StringBuilder trackDurationStringBuilder = new StringBuilder();
+        final var trackNameStringBuilder = new StringBuilder();
+        final var trackDurationStringBuilder = new StringBuilder();
 
-        for (AudioTrackInfoDto dto : dtos) {
+        for (final var dto : dtos) {
             if (dto.getIndex() >= 11) {
                 break;
             }
@@ -89,11 +102,11 @@ public class QueueCommandHandler implements CommandHandler {
         builder.addField("Track List", trackNameStringBuilder.toString(), true);
         builder.addField("Duration", trackDurationStringBuilder.toString(), true);
 
-        return MessageResponse.reply(event.getMessage(), builder.build());
+        return event.replyEmbeds(builder.build());
     }
 
     private static String formatMillisToHumanTime(final long millis) {
-        Duration duration = Duration.ofMillis(millis);
+        final var duration = Duration.ofMillis(millis);
         return "%02d:%02d:%02d".formatted(duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
     }
 

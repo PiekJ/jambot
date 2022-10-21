@@ -15,8 +15,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class PauseCommandHandler implements CommandHandler {
-    private static final String COMMAND_NAME = "pause";
+public class StopCommandHandler implements CommandHandler {
+    private static final String COMMAND_NAME = "stop";
 
     private final GuildMusicService musicService;
 
@@ -27,7 +27,7 @@ public class PauseCommandHandler implements CommandHandler {
 
     @Override
     public CommandData registerCommand() {
-        return Commands.slash(COMMAND_NAME, "Pause or unpause current playing track");
+        return Commands.slash(COMMAND_NAME, "Stop playing the track");
     }
 
     @Override
@@ -38,12 +38,11 @@ public class PauseCommandHandler implements CommandHandler {
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
         try {
-            musicService.pause(event.getGuild(), event.getUser());
+            musicService.stop(event.getGuild(), event.getUser());
 
-            return event.reply("Ok, I'll pause the track...");
+            return event.reply("Ok, I stop this.");
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {
-            return event.reply(exception.getMessage())
-                    .setEphemeral(true);
+            return event.reply(exception.getMessage());
         }
     }
 }
