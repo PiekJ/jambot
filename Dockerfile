@@ -9,13 +9,12 @@ RUN mvn -f /home/app/pom.xml clean package
 #
 # Package stage
 #
-FROM amazoncorretto:19-alpine
+FROM amazoncorretto:19
 LABEL org.opencontainers.image.source="https://github.com/PiekJ/jambot"
 ENV TZ=Europe/Amsterdam
 ENV JAVA_OPTS -server
 EXPOSE 8080
-RUN apk --no-cache add curl \
-    && mkdir -p /app
+RUN mkdir -p /app
 COPY --from=build /home/app/target/*.jar /app/run.jar
 WORKDIR /app
 ENTRYPOINT java $JAVA_OPTS -jar run.jar
