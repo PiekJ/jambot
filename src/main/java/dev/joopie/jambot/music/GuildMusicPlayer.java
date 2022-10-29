@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.springframework.scheduling.TaskScheduler;
 
@@ -64,7 +65,12 @@ public class GuildMusicPlayer {
 
         volume(100);
 
-        guild.getAudioManager().openAudioConnection(voiceChannel);
+        try {
+            guild.getAudioManager().openAudioConnection(voiceChannel);
+        } catch (InsufficientPermissionException e) {
+            throw new JambotMusicPlayerException(
+                    "I don't have enough permissions to join you, missing `%s`.".formatted(e.getPermission()));
+        }
 
         if (!(guild.getAudioManager().getSendingHandler() instanceof AudioPlayerAudioSendHandler)) {
             guild.getAudioManager().setSendingHandler(new AudioPlayerAudioSendHandler(audioPlayer));
