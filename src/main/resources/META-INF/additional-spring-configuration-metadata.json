@@ -1,0 +1,23 @@
+{
+  "properties": [
+    {
+      "name": "jda.token",
+      "type": "java.lang.String",
+      "description": "Java Discord API Token. This is your Bot token from the developer portal."
+    },
+    {
+      "name": "youtube.token",
+      "type": "java.lang.String",
+      "description": "Youtube Data V3 API Token. From Google Cloud."
+    },
+    {
+      "name": "app.admin-user-id",
+      "type": "java.lang.String",
+      "description": "Discord user ID for the admin."
+    },
+    {
+      "name": "app.update-commands-secret",
+      "type": "java.lang.String",
+      "description": "String for reloading the slash commands. Has to be sent by the admin user in the bot DMs."
+    }
+  ] }
