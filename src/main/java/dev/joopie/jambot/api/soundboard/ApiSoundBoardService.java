@@ -1,25 +1,17 @@
 package dev.joopie.jambot.api.soundboard;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.joopie.jambot.api.soundboard.dto.SoundAuthorDto;
-import dev.joopie.jambot.api.soundboard.response.FilesResponse;
-import dev.joopie.jambot.config.properties.SoundBoardProperties;
-import dev.joopie.jambot.exceptions.JambotYouTubeException;
+import dev.joopie.jambot.api.youtube.JambotYouTubeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Slf4j

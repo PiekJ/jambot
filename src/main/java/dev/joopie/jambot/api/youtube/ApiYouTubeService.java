@@ -1,25 +1,17 @@
 package dev.joopie.jambot.api.youtube;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import dev.joopie.jambot.api.youtube.dto.SearchResultDto;
-import dev.joopie.jambot.api.youtube.response.SearchResponse;
-import dev.joopie.jambot.config.properties.YouTubeProperties;
-import dev.joopie.jambot.exceptions.JambotYouTubeException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
-import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
 import java.util.Optional;
 
 @Slf4j

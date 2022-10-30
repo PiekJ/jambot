@@ -2,7 +2,7 @@ package dev.joopie.jambot;
 
 import dev.joopie.jambot.command.CommandAutocomplete;
 import dev.joopie.jambot.command.CommandHandler;
-import dev.joopie.jambot.config.properties.ApplicationProperties;
+import dev.joopie.jambot.config.ApplicationProperties;
 import dev.joopie.jambot.music.GuildMusicService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

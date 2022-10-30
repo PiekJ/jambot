@@ -1,8 +1,8 @@
 package dev.joopie.jambot.soundboard;
 
 import dev.joopie.jambot.api.soundboard.ApiSoundBoardService;
-import dev.joopie.jambot.api.soundboard.dto.SoundAuthorDto;
-import dev.joopie.jambot.exceptions.JambotSoundBoardException;
+import dev.joopie.jambot.api.soundboard.SoundAuthorDto;
+import dev.joopie.jambot.api.soundboard.JambotSoundBoardException;
 import dev.joopie.jambot.music.GuildMusicService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

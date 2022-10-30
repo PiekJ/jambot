@@ -1,10 +1,6 @@
 package dev.joopie.jambot.music;
 
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
-import dev.joopie.jambot.exceptions.JambotMusicPlayerException;
-import dev.joopie.jambot.exceptions.JambotMusicServiceException;
-import dev.joopie.jambot.music.dto.AudioTrackInfoDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
