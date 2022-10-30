@@ -1,7 +1,6 @@
 package dev.joopie.jambot.config;
 
 import dev.joopie.jambot.JambotListener;
-import dev.joopie.jambot.config.properties.JdaProperties;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
