@@ -1,5 +1,6 @@
 package dev.joopie.jambot.music.command;
 
+import dev.joopie.jambot.api.spotify.ApiSpotifyService;
 import dev.joopie.jambot.api.youtube.ApiYouTubeService;
 import dev.joopie.jambot.api.youtube.SearchResultDto;
 import dev.joopie.jambot.command.CommandHandler;
@@ -20,7 +21,9 @@ import net.dv8tion.jda.api.requests.RestAction;
 import org.springframework.stereotype.Component;
 
 import java.awt.*;
+import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
 
 @Component
@@ -28,11 +31,14 @@ import java.util.regex.Pattern;
 public class PlayCommandHandler implements CommandHandler {
     private static final String COMMAND_NAME = "jam";
     private static final String COMMAND_OPTION_INPUT_NAME = "input";
+    private static final String SPOTIFY_URL="https://open.spotify.com";
 
     private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
 
     private final GuildMusicService musicService;
     private final ApiYouTubeService apiYouTubeService;
+
+    private final ApiSpotifyService apiSpotifyService;
 
     @Override
     public Command.Type type() {
@@ -45,7 +51,7 @@ public class PlayCommandHandler implements CommandHandler {
                 .addOption(
                         OptionType.STRING,
                         COMMAND_OPTION_INPUT_NAME,
-                        "YouTube, Soundcloud etc url or search term",
+                        "YouTube, Soundcloud, Spotify url or search term",
                         true);
     }
 
@@ -67,6 +73,42 @@ public class PlayCommandHandler implements CommandHandler {
 
         try {
             final var input = inputOption.getAsString();
+
+            if (input.contains(SPOTIFY_URL)) {
+                if (input.contains("track")) {
+                    String trackId = input.replaceAll("\\?.*", "").substring(input.lastIndexOf("/") + 1);
+                    String spotifyresult = apiSpotifyService.getTrack(trackId);
+
+                    if (spotifyresult.isEmpty()) {
+                        return event.getHook()
+                                .sendMessage("That's bad! We couldn't found anything with the given Spotify URL. Did you copy the right link?");
+
+                    }
+                    final var result = apiYouTubeService.searchForSong(spotifyresult);
+
+                    if (result.isFound()) {
+                        musicService.play(event.getGuild(), event.getUser(), result.getVideoId());
+                        return event.getHook()
+                                .sendMessageEmbeds(createMessageEmbedOfSearchTrack(event.getGuild().getName(), result));
+                    }
+                } else if (input.contains("playlist")) {
+                    AtomicInteger counter = new AtomicInteger();
+                    String playListId = input.replaceAll("\\?.*", "").substring(input.lastIndexOf("/") + 1);
+                    List<String> spotifyresult = apiSpotifyService.getTracksFromPlaylist(playListId);
+
+                    spotifyresult.forEach(result -> {
+                        var playlistresult = apiYouTubeService.searchForSong(result);
+
+                        if (playlistresult.isFound()) {
+                            musicService.play(event.getGuild(), event.getUser(), playlistresult.getVideoId());
+                            counter.getAndIncrement();
+                        }
+                    });
+                    return event.getHook()
+                            .sendMessage("Imported playlist. Queued %s items!".formatted(counter));
+                }
+
+            }
 
             if (URL_OR_ID_PATTERN.matcher(input).matches()) {
                 musicService.play(event.getGuild(), event.getUser(), input);
