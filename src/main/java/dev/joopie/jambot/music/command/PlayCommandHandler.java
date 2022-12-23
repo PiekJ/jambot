@@ -39,12 +39,9 @@ public class PlayCommandHandler implements CommandHandler {
     private static final String COMMAND_NAME = "jam";
     private static final String COMMAND_OPTION_INPUT_NAME = "input";
     private static final String SPOTIFY_URL = "spotify";
-
     private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
-
     private final GuildMusicService musicService;
     private final ApiYouTubeService apiYouTubeService;
-
     private final ApiSpotifyService apiSpotifyService;
     private final boolean isAvailable = false;
 
