@@ -8,16 +8,13 @@ import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 import se.michaelthelin.spotify.model_objects.specification.*;
-import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
-import se.michaelthelin.spotify.requests.data.playlists.GetPlaylistsItemsRequest;
-import se.michaelthelin.spotify.requests.data.tracks.GetTrackRequest;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.Optional;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 
@@ -25,69 +22,89 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class ApiSpotifyService {
-    private static final Logger LOGGER = Logger.getLogger(ApiSpotifyService.class.getName());
     private final SpotifyProperties properties;
     private SpotifyApi spotifyApi;
-    private ClientCredentialsRequest clientCredentialsRequest;
 
     private ClientCredentials clientCredentials;
 
 
-    public void getSpotifyAccessToken() {
+    public void fetchSpotifyAccessToken() {
         spotifyApi =  new SpotifyApi.Builder()
                 .setClientId(properties.getClientId())
                 .setClientSecret(properties.getClientSecret())
                 .build();
 
-        clientCredentialsRequest =  spotifyApi.clientCredentials()
+        final var clientCredentialsRequest = spotifyApi.clientCredentials()
                 .build();
 
         try {
             clientCredentials = clientCredentialsRequest.execute();
 
-            // Set access token for further "spotifyApi" object usage
             spotifyApi.setAccessToken(clientCredentials.getAccessToken());
 
-            System.out.println("Expires in: " + clientCredentials.getExpiresIn());
+            log.debug("Expires in: " + clientCredentials.getExpiresIn());
         } catch (IOException | SpotifyWebApiException | ParseException e) {
-            LOGGER.log(Level.SEVERE, "Error: {0}", e.getMessage());
+            log.error("Error: {0}", e.getMessage());
         }
     }
 
-    public String getTrack(String trackId) {
+    public Optional<String> getTrack(String link) {
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || clientCredentials.getExpiresIn() < 0) {
-            getSpotifyAccessToken();
+            fetchSpotifyAccessToken();
         }
+        final var trackId = getSpotifyIdFromLink(link);
 
-        GetTrackRequest getTrackRequest = spotifyApi.getTrack(trackId).build();
+        if (trackId.isPresent()) {
+            final var getTrackRequest = spotifyApi.getTrack(trackId.get()).build();
 
-        try {
-            final Track track = getTrackRequest.execute();
-            String artists = Arrays.stream(track.getArtists()).map(ArtistSimplified::getName).collect(Collectors.joining(","));
-            return String.join("-", artists, track.getName());
+            try {
+                final var track = getTrackRequest.execute();
+                final var artists = Arrays.stream(track.getArtists()).map(ArtistSimplified::getName).collect(Collectors.joining(","));
+                return Optional.of(getFormattedTrack(artists, track));
 
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            LOGGER.log(Level.SEVERE, "Error: {0}", e.getMessage());
+            } catch (IOException | SpotifyWebApiException | ParseException e) {
+                log.error("Error: %s".formatted(e.getMessage()));
+            }
         }
-        return "";
+        return Optional.empty();
     }
 
-    public List<String> getTracksFromPlaylist(String playlistId) {
-        if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty()) {
-            getSpotifyAccessToken();
+    public List<String> getTracksFromPlaylist(String link) {
+        if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || clientCredentials.getExpiresIn() < 0) {
+            fetchSpotifyAccessToken();
         }
-        GetPlaylistsItemsRequest playlistsItemsRequest = spotifyApi.getPlaylistsItems(playlistId).build();
+        final var playlistId = getSpotifyIdFromLink(link);
 
-        try {
-            final Paging<PlaylistTrack> playlist = playlistsItemsRequest.execute();
-            return Arrays.stream(playlist.getItems())
+        if (playlistId.isPresent()) {
+            final var playlistsItemsRequest = spotifyApi.getPlaylistsItems(playlistId.get()).build();
+
+            try {
+                final Paging<PlaylistTrack> playlist = playlistsItemsRequest.execute();
+                return Arrays.stream(playlist.getItems())
                         .map(playlistItem -> (Track) playlistItem.getTrack())
-                        .map(track -> String.join("-" , Arrays.stream(track.getArtists()).map(ArtistSimplified::getName).collect(Collectors.joining(",")),track.getName()))
-                    .toList();
+                        .map(track -> getFormattedTrack(Arrays.stream(track.getArtists()).map(ArtistSimplified::getName).collect(Collectors.joining(",")), track))
+                        .toList();
 
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            LOGGER.log(Level.SEVERE, "Error: {0}", e.getMessage());
+            } catch (IOException | SpotifyWebApiException | ParseException e) {
+                log.error("Error: %s".formatted(e.getMessage()));
+            }
         }
-        return new ArrayList<>();
+        return List.of();
+    }
+
+    private String getFormattedTrack(String artists, Track track) {
+        return "%s-%s".formatted(artists, track.getName());
+    }
+
+    private Optional<String> getSpotifyIdFromLink(String link) {
+        Pattern pattern = Pattern.compile("https?:\\/\\/(?:open\\.)?spotify.com\\/(user|episode|playlist|track)\\/(?:spotify\\/playlist\\/)?(\\w*)");
+        Matcher matcher = pattern.matcher(link);
+
+        if (matcher.find()) {
+            return Optional.of(matcher.group(2));
+        } else {
+            log.warn("No ID found in the link.");
+            return Optional.empty();
+        }
     }
 }
