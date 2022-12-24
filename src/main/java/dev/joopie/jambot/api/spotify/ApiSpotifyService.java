@@ -10,6 +10,7 @@ import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 import se.michaelthelin.spotify.model_objects.specification.*;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +25,7 @@ public class ApiSpotifyService {
     private static final Pattern SPOTIFY_URL_PATTERN = Pattern.compile("https?:\\/\\/(?:open\\.)?spotify.com\\/(user|episode|playlist|track)\\/(?:spotify\\/playlist\\/)?(\\w*)");
     private final SpotifyProperties properties;
     private SpotifyApi spotifyApi;
-    private ClientCredentials clientCredentials;
+    private LocalDateTime tokenExpireDate;
 
     public void initSpotifyAccessToken() {
         spotifyApi = new SpotifyApi.Builder()
@@ -36,8 +37,9 @@ public class ApiSpotifyService {
                 .build();
 
         try {
-            clientCredentials = clientCredentialsRequest.execute();
+            ClientCredentials clientCredentials = clientCredentialsRequest.execute();
             spotifyApi.setAccessToken(clientCredentials.getAccessToken());
+            tokenExpireDate = LocalDateTime.now().plusSeconds(clientCredentials.getExpiresIn());
 
             log.debug("Expires in: {}", clientCredentials.getExpiresIn());
         } catch (IOException | SpotifyWebApiException | ParseException e) {
@@ -46,7 +48,7 @@ public class ApiSpotifyService {
     }
 
     public Optional<String> getTrack(String link) {
-        if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || clientCredentials.getExpiresIn() < 0) {
+        if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
         final var trackId = getSpotifyIdFromLink(link);
@@ -68,7 +70,7 @@ public class ApiSpotifyService {
     }
 
     public List<String> getTracksFromPlaylist(String link) {
-        if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || clientCredentials.getExpiresIn() < 0) {
+        if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
         final var playlistId = getSpotifyIdFromLink(link);
@@ -107,5 +109,9 @@ public class ApiSpotifyService {
             log.debug("No ID found in the link.");
             return Optional.empty();
         }
+    }
+
+    private boolean isAccessTokenExpired() {
+        return LocalDateTime.now().isAfter(tokenExpireDate);
     }
 }
