@@ -29,7 +29,7 @@ public class JamCommandHandler implements CommandHandler {
 
     @Override
     public boolean shouldHandle(CommandInteractionPayload event) {
-        return playCommandHandler.shouldHandle(event);
+        return COMMAND_NAME.equals(event.getName());
     }
 
     @Override
