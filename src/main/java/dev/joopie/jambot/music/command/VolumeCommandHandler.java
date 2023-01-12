@@ -55,7 +55,7 @@ public class VolumeCommandHandler implements CommandHandler {
         try {
             final var volume = volumeOption.getAsInt();
 
-            musicService.volume(event.getGuild(), event.getUser(), volume);
+            musicService.volume(event.getMember(), volume);
 
             return event.reply("Ok, volume changed to %s%%, thank you very much!".formatted(volume));
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {

@@ -38,7 +38,7 @@ public class NextCommandHandler implements CommandHandler {
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
         try {
-            musicService.next(event.getGuild(), event.getUser());
+            musicService.next(event.getMember());
 
             return event.reply("Ok, insta playing next track!");
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {

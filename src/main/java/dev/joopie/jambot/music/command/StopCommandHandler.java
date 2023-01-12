@@ -38,7 +38,7 @@ public class StopCommandHandler implements CommandHandler {
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
         try {
-            musicService.stop(event.getGuild(), event.getUser());
+            musicService.stop(event.getMember());
 
             return event.reply("Ok, I stop this.");
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {

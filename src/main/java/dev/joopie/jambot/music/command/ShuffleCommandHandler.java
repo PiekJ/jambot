@@ -38,7 +38,7 @@ public class ShuffleCommandHandler implements CommandHandler {
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
         try {
-            musicService.shuffleQueuedAudioTracks(event.getGuild(), event.getUser());
+            musicService.shuffleQueuedAudioTracks(event.getMember());
 
             return event.reply("Ok, we'll shuffle it all!!");
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {

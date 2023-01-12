@@ -40,8 +40,7 @@ public class ApiYouTubeService {
                         .map(this::mapSearchResponseItemToSearchResult)
                         .orElseThrow(() -> new JambotYouTubeException("Did not find any search result."));
             } else {
-                log.warn("Invalid http response status (%s) returned."
-                        .formatted(response.getStatusLine().getStatusCode()));
+                log.warn("Invalid http response status ({}) returned.", response.getStatusLine().getStatusCode());
             }
         } catch (IOException exception) {
             log.warn("YouTube did an oepsie.", exception);

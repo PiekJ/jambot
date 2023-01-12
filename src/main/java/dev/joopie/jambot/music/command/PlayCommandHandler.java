@@ -98,7 +98,7 @@ public class PlayCommandHandler implements CommandHandler {
     private WebhookMessageCreateAction<Message> handleYoutubeSearch(CommandInteraction event, String input) {
         final var dto = apiYouTubeService.searchForSong(input);
         if (dto.isFound()) {
-            musicService.play(event.getGuild(), event.getUser(), dto.getVideoId());
+            musicService.play(event.getMember(), dto.getVideoId());
 
             return event.getHook()
                     .sendMessageEmbeds(createMessageEmbedOfSearchTrack(event.getGuild().getName(), dto));
@@ -110,7 +110,7 @@ public class PlayCommandHandler implements CommandHandler {
 
 
     private WebhookMessageCreateAction<Message> handleNormalLink(CommandInteraction event, String input) {
-        musicService.play(event.getGuild(), event.getUser(), input);
+        musicService.play(event.getMember(), input);
         return event.getHook()
                 .sendMessage("OK, we added the track to the queue! %s".formatted(input));
     }
@@ -134,7 +134,7 @@ public class PlayCommandHandler implements CommandHandler {
                             var playlistresult = apiYouTubeService.searchForSong(result);
 
                             if (playlistresult.isFound()) {
-                                musicService.play(event.getGuild(), event.getUser(), playlistresult.getVideoId());
+                                musicService.play(event.getMember(), playlistresult.getVideoId());
                                 counter.getAndIncrement();
                             }
                         });

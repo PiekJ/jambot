@@ -32,19 +32,19 @@ public class JambotListener extends ListenerAdapter {
     @Override
     public void onGuildReady(@NotNull final GuildReadyEvent event) {
         guildMusicService.initializeGuildMusicService(event.getGuild());
-        log.info("Guild `%s` is ready!".formatted(event.getGuild().getName()));
+        log.info("Guild `{}` is ready!", event.getGuild().getName());
     }
 
     @Override
     public void onGuildJoin(@NotNull final GuildJoinEvent event) {
         guildMusicService.initializeGuildMusicService(event.getGuild());
-        log.info("Joined guild `%s`.".formatted(event.getGuild().getName()));
+        log.info("Joined guild `{}`.", event.getGuild().getName());
     }
 
     @Override
     public void onGuildLeave(@NotNull final GuildLeaveEvent event) {
         guildMusicService.destroyGuildMusicService(event.getGuild());
-        log.info("Left guild `%s`.".formatted(event.getGuild().getName()));
+        log.info("Left guild `{}`.", event.getGuild().getName());
     }
 
     @Override

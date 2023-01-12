@@ -38,7 +38,7 @@ public class PauseCommandHandler implements CommandHandler {
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
         try {
-            musicService.pause(event.getGuild(), event.getUser());
+            musicService.pause(event.getMember());
 
             return event.reply("Ok, I'll pause the track...");
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {

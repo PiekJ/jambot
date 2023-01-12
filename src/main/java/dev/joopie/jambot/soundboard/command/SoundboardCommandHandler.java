@@ -60,7 +60,7 @@ public class SoundboardCommandHandler implements CommandHandler, CommandAutocomp
         final var authorName = authorOption.getAsString();
 
         try {
-            soundboardService.playRandomSoundByAuthor(event.getGuild(), event.getUser(), authorName);
+            soundboardService.playRandomSoundByAuthor(event.getMember(), authorName);
 
             return event.reply("WOOOO, we might have queued something of %s ;).".formatted(authorName))
                     .setEphemeral(true);

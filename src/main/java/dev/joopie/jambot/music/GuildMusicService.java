@@ -4,7 +4,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.Member;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
@@ -24,7 +24,7 @@ public class GuildMusicService {
 
     public void initializeGuildMusicService(final Guild guild) {
         if (musicPlayerMap.containsKey(guild.getIdLong())) {
-            log.warn("Derp. How can we initialize guild `%s` twice?!".formatted(guild.getName()));
+            log.warn("Derp. How can we initialize guild `{}` twice?!", guild.getName());
             return;
         }
 
@@ -56,59 +56,59 @@ public class GuildMusicService {
         }
     }
 
-    public void leave(final Guild guild, final User user) {
-        final var musicPlayer = getAudioPlayer(guild);
+    public void leave(final Member member) {
+        final var musicPlayer = getAudioPlayer(member.getGuild());
 
         assertConnectedToVoiceChannel(musicPlayer);
-        assertUserInSameVoiceChannel(musicPlayer, user);
+        assertMemberInSameVoiceChannel(musicPlayer, member);
 
         musicPlayer.leave();
     }
 
-    public void play(final Guild guild, final User user, final String input) {
-        final var musicPlayer = getAudioPlayer(guild);
+    public void play(final Member member, final String input) {
+        final var musicPlayer = getAudioPlayer(member.getGuild());
 
         if (musicPlayer.isConnectedToVoiceChannel()) {
-            assertUserInSameVoiceChannel(musicPlayer, user);
+            assertMemberInSameVoiceChannel(musicPlayer, member);
         } else {
-            musicPlayer.joinVoiceChannelOfUser(user);
+            musicPlayer.joinVoiceChannelOfMember(member);
         }
 
         audioPlayerManager.loadItemOrdered(musicPlayer, input, new AudioTrackLoadResultHandler(musicPlayer));
     }
 
-    public void pause(final Guild guild, final User user) {
-        final var musicPlayer = getAudioPlayer(guild);
+    public void pause(final Member member) {
+        final var musicPlayer = getAudioPlayer(member.getGuild());
 
         assertConnectedToVoiceChannel(musicPlayer);
-        assertUserInSameVoiceChannel(musicPlayer, user);
+        assertMemberInSameVoiceChannel(musicPlayer, member);
 
         musicPlayer.pause();
     }
 
-    public void stop(final Guild guild, final User user) {
-        final var musicPlayer = getAudioPlayer(guild);
+    public void stop(final Member member) {
+        final var musicPlayer = getAudioPlayer(member.getGuild());
 
         assertConnectedToVoiceChannel(musicPlayer);
-        assertUserInSameVoiceChannel(musicPlayer, user);
+        assertMemberInSameVoiceChannel(musicPlayer, member);
 
         musicPlayer.stop();
     }
 
-    public void next(final Guild guild, final User user) {
-        final var musicPlayer = getAudioPlayer(guild);
+    public void next(final Member member) {
+        final var musicPlayer = getAudioPlayer(member.getGuild());
 
         assertConnectedToVoiceChannel(musicPlayer);
-        assertUserInSameVoiceChannel(musicPlayer, user);
+        assertMemberInSameVoiceChannel(musicPlayer, member);
 
         musicPlayer.next();
     }
 
-    public void clear(final Guild guild, final User user) {
-        final var musicPlayer = getAudioPlayer(guild);
+    public void clear(final Member member) {
+        final var musicPlayer = getAudioPlayer(member.getGuild());
 
         assertConnectedToVoiceChannel(musicPlayer);
-        assertUserInSameVoiceChannel(musicPlayer, user);
+        assertMemberInSameVoiceChannel(musicPlayer, member);
 
         musicPlayer.clear();
     }
@@ -128,20 +128,20 @@ public class GuildMusicService {
                 .collect(Collectors.toList());
     }
 
-    public void shuffleQueuedAudioTracks(final Guild guild, final User user) {
-        final var musicPlayer = getAudioPlayer(guild);
+    public void shuffleQueuedAudioTracks(final Member member) {
+        final var musicPlayer = getAudioPlayer(member.getGuild());
 
         assertConnectedToVoiceChannel(musicPlayer);
-        assertUserInSameVoiceChannel(musicPlayer, user);
+        assertMemberInSameVoiceChannel(musicPlayer, member);
 
         musicPlayer.shuffleQueuedAudioTracks();
     }
 
-    public void volume(final Guild guild, final User user, final int volume) {
-        final var musicPlayer = getAudioPlayer(guild);
+    public void volume(final Member member, final int volume) {
+        final var musicPlayer = getAudioPlayer(member.getGuild());
 
         assertConnectedToVoiceChannel(musicPlayer);
-        assertUserInSameVoiceChannel(musicPlayer, user);
+        assertMemberInSameVoiceChannel(musicPlayer, member);
 
         musicPlayer.volume(volume);
     }
@@ -164,8 +164,8 @@ public class GuildMusicService {
         }
     }
 
-    private void assertUserInSameVoiceChannel(final GuildMusicPlayer musicPlayer, final User user) {
-        if (!musicPlayer.isSameVoiceChannelAsUser(user)) {
+    private void assertMemberInSameVoiceChannel(final GuildMusicPlayer musicPlayer, final Member member) {
+        if (!musicPlayer.isSameVoiceChannelAsMember(member)) {
             throw new JambotMusicServiceException("Join the voice channel!");
         }
     }

@@ -14,7 +14,7 @@ public class AudioTrackLoadResultHandler implements AudioLoadResultHandler {
 
     @Override
     public void trackLoaded(final AudioTrack audioTrack) {
-        log.info("Audio track queued `%s`.".formatted(audioTrack.getInfo().title));
+        log.info("Audio track queued `{}}`.", audioTrack.getInfo().title);
         musicPlayer.play(audioTrack);
     }
 
@@ -24,7 +24,7 @@ public class AudioTrackLoadResultHandler implements AudioLoadResultHandler {
             trackLoaded(audioPlaylist.getSelectedTrack());
         }
         else {
-            log.info("Playlist of %s audio tracks loaded.".formatted(audioPlaylist.getTracks().size()));
+            log.info("Playlist of {} audio tracks loaded.", audioPlaylist.getTracks().size());
             audioPlaylist.getTracks().forEach(musicPlayer::play);
         }
     }

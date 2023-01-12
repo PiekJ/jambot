@@ -38,7 +38,7 @@ public class ClearCommandHandler implements CommandHandler {
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
         try {
-            musicService.clear(event.getGuild(), event.getUser());
+            musicService.clear(event.getMember());
 
             return event.reply("Ok, queue cleared :o!");
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {

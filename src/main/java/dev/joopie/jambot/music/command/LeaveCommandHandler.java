@@ -38,7 +38,7 @@ public class LeaveCommandHandler implements CommandHandler {
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
         try {
-            musicService.leave(event.getGuild(), event.getUser());
+            musicService.leave(event.getMember());
 
             return event.reply("Ok, I'll leave now ;(");
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {

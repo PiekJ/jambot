@@ -35,8 +35,7 @@ public class ApiSoundBoardService {
                         .map(this::mapFilesResponseItemsToSoundAuthors)
                         .orElseThrow(JambotYouTubeException::new);
             } else {
-                log.warn("Invalid http response status (%s) returned."
-                        .formatted(response.getStatusLine().getStatusCode()));
+                log.warn("Invalid http response status ({}) returned.", response.getStatusLine().getStatusCode());
             }
         } catch (IOException exception) {
             log.warn("SoundBoard did a oepsie.", exception);
