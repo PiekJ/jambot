@@ -25,6 +25,15 @@ body:
     validations:
       required: true
   - type: textarea
+    id: why
+    attributes:
+      label: Why should we fix it?
+      description: 
+      placeholder: Why should we fix it?
+      value: ""
+    validations:
+      required: true
+  - type: textarea
     id: logs
     attributes:
       label: Relevant log output
