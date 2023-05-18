@@ -20,4 +20,5 @@
 - [ ] Documentation present (relevant information is properly documented)
 - [ ] Written tests for test suite (optional for the moment)
 - [ ] Tested on devices
+- [ ] SonarCloud Quality is passed
 - [ ] CHANGELOG updated
