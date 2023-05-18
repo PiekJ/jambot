@@ -2,6 +2,8 @@ name: Bug Report
 description: File a bug report
 title: "[Bug]: "
 labels: ["bug", "triage"]
+assignees:
+  - octocat
 body:
   - type: markdown
     attributes:
@@ -25,15 +27,6 @@ body:
     validations:
       required: true
   - type: textarea
-    id: why
-    attributes:
-      label: Why should we fix it?
-      description: 
-      placeholder: Why should we fix it?
-      value: ""
-    validations:
-      required: true
-  - type: textarea
     id: logs
     attributes:
       label: Relevant log output
@@ -42,7 +35,8 @@ body:
   - type: checkboxes
     id: terms
     attributes:
-      label: Yes
+      label: Check for duplicate issues
+      description: By submitting this issue, you agree you have checked if this issue is not a duplicate issue
       options:
-        - label: I checked that my issue is not a duplicate of any other existing issues in Github
+        - label: Yes, I checked for duplicate issues
           required: true
