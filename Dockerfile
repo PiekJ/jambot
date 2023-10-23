@@ -1,4 +1,4 @@
-FROM eclipse-temurin:19
+FROM eclipse-temurin:21
 LABEL org.opencontainers.image.source="https://github.com/PiekJ/jambot"
 ENV TZ=Europe/Amsterdam
 ENV JAVA_OPTS -server

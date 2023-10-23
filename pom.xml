@@ -16,7 +16,7 @@
 	<description>Jambox bot for Discord</description>
 
 	<properties>
-		<java.version>19</java.version>
+		<java.version>21</java.version>
 		<sonar.projectKey>PiekJ_jambot</sonar.projectKey>
 		<sonar.organization>piekj</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
