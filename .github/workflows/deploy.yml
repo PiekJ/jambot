@@ -25,4 +25,5 @@ jobs:
           script: |
             cd /srv/jambot
             docker compose down
-            docker compose up -d --pull
+            docker compose pull
+            docker compose up -d
