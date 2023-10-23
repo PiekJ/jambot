@@ -1,0 +1,28 @@
+name: Deploy JamBot
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy latest version to
+        type: environment
+        required: true
+        default: production
+
+jobs:
+  deploy:
+    environment:
+      name: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute deploy commands on ${{ inputs.environment }}
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.METAL_HOST }}
+          username: ${{ secrets.METAL_USER }}
+          key: ${{ secrets.METAL_SSH_KEY }}
+          port: ${{ secrets.METAL_SSH_PORT }}
+          script: |
+            cd /srv/jambot
+            docker compose down
+            docker compose up -d --pull
