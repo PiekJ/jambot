@@ -1,13 +1,17 @@
 name: Analyze
+
 on:
   push:
     branches:
       - master
+    paths:
+      - src/**/*
   pull_request:
     types: 
       - opened
       - synchronize
       - reopened
+
 jobs:
   build:
     name: Build and Analyze

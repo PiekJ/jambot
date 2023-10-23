@@ -2,7 +2,10 @@ name: Build and Publish Artifact
 
 on:
   push:
-    branches: master
+    branches: 
+      - master
+    paths-exclude: 
+      - docs/**/*
 
 jobs:
   build-and-publish:
