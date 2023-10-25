@@ -4,12 +4,12 @@ import dev.joopie.jambot.api.soundboard.ApiSoundBoardService;
 import dev.joopie.jambot.api.soundboard.JambotSoundBoardException;
 import dev.joopie.jambot.api.soundboard.SoundAuthorDto;
 import dev.joopie.jambot.music.GuildMusicService;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Member;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;

@@ -3,12 +3,13 @@ package dev.joopie.jambot.api.youtube;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.context.properties.ConstructorBinding;
 
-@ConfigurationProperties(prefix = "youtube")
-@ConstructorBinding
+@ConfigurationProperties(prefix = "red.jambot.youtube")
 @Getter
 @RequiredArgsConstructor
 public class YouTubeProperties {
+    /**
+     * YouTube API token from Google Cloud Platform.
+     */
     private final String token;
 }

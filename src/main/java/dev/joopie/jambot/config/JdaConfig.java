@@ -29,10 +29,14 @@ public class JdaConfig {
                         CacheFlag.EMOJI,
                         CacheFlag.STICKER,
                         CacheFlag.CLIENT_STATUS,
-                        CacheFlag.ONLINE_STATUS)
+                        CacheFlag.MEMBER_OVERRIDES,
+                        CacheFlag.ROLE_TAGS,
+                        CacheFlag.FORUM_TAGS,
+                        CacheFlag.ONLINE_STATUS,
+                        CacheFlag.SCHEDULED_EVENTS)
                 .setMemberCachePolicy(MemberCachePolicy.VOICE)
                 .addEventListeners(listener)
-                .setActivity(Activity.playing("some music"))
+                .setActivity(Activity.playing("some music").withState("Yay"))
                 .build();
     }
 }
