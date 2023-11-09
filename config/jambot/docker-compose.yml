@@ -25,5 +25,10 @@ services:
   jambot:
     image: ghcr.io/piekj/jambot
     restart: always
+    ports:
+      - 8080:8080
     env_file:
       - .env
+    environment:
+      - MANAGEMENT_OTLP_METRICS_EXPORT_ENABLED=true
+      - MANAGEMENT_OTLP_METRICS_EXPORT_URL=otel-collector:4317
