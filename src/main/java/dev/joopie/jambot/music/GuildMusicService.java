@@ -150,6 +150,16 @@ public class GuildMusicService {
         musicPlayer.volume(volume);
     }
 
+    public double countGuilds() {
+        return musicPlayerMap.size();
+    }
+
+    public double countGuildsConnectedToVoice() {
+        return musicPlayerMap.values().stream()
+                .filter(GuildMusicPlayer::isConnectedToVoiceChannel)
+                .count();
+    }
+
     private GuildMusicPlayer getAudioPlayer(final Guild guild) {
         assertMusicPlayerForGuild(guild);
 
