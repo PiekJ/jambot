@@ -1,0 +1,35 @@
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    container_name: jambot-telemetry-collector
+    volumes:
+      - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml
+    network_mode: host
+    ports:
+      - 4317:4317 # grpc
+      - 4318:4318 # http
+      - 2255:2255 # logspout
+    labels:
+      red.jambot.logs.exclude: true
+    restart: on-failure
+  logspout:
+    image: gliderlabs/logspout
+    container_name: jambot-telemetry-logspout
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: syslog+tcp://172.17.0.1:2255
+    environment:
+      - EXCLUDE_LABELS=red.jambot.logs.exclude
+    depends_on:
+      - otel-collector
+    restart: on-failure
+  jambot:
+    image: ghcr.io/piekj/jambot
+    restart: always
+    ports:
+      - 8080:8080
+    env_file:
+      - .env
+    environment:
+      - MANAGEMENT_OTLP_METRICS_EXPORT_ENABLED=true
+      - MANAGEMENT_OTLP_METRICS_EXPORT_URL=otel-collector:4317

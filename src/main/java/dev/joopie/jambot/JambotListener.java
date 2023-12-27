@@ -4,6 +4,7 @@ import dev.joopie.jambot.command.CommandAutocomplete;
 import dev.joopie.jambot.command.CommandHandler;
 import dev.joopie.jambot.config.ApplicationProperties;
 import dev.joopie.jambot.music.GuildMusicService;
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
@@ -24,6 +25,9 @@ import java.util.Objects;
 @Slf4j
 @Component
 @RequiredArgsConstructor
+@Observed(
+        name = "jambot.listener",
+        contextualName = "Main entrypoint of Discord events")
 public class JambotListener extends ListenerAdapter {
     private final GuildMusicService guildMusicService;
     private final ApplicationProperties applicationProperties;
