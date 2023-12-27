@@ -27,62 +27,27 @@ public class GuildMusicPlayer {
     private static final int VOLUME_MAX = 50;
     private static final int SCHEDULE_LEAVE_MINUTES = 5;
 
-    private final Guild guild;
+    private final long guildId;
     private final AudioPlayer audioPlayer;
     private final BlockingQueue<AudioTrack> audioTrackQueue = new LinkedBlockingQueue<>();
     private final TaskScheduler taskScheduler;
+    private final GuildProvider guildProvider;
 
     private ScheduledFuture<?> scheduledLeaveTask;
 
     public void joinVoiceChannelOfUser(final User user) {
-        assertUserInGuild(user);
-
-        final var member = guild.retrieveMember(user).complete();
-        if (Objects.isNull(member)) {
-            log.warn("User `{}` is not a member of guild `{}` or not joined any voice channel.",
-                    user.getName(),
-                    guild.getName());
-            throw new JambotMusicPlayerException("It appears I can't find you on a voice channel in the server...");
-        }
-
-        joinVoiceChannelOfMember(member);
+        final var guild = guildProvider.getGuild(guildId);
+        joinVoiceChannelOfUser(user, guild);
     }
 
     public void joinVoiceChannelOfMember(final Member member) {
-        assertMemberInGuild(member);
-
-        if (guild.getAudioManager().isConnected()) {
-            log.warn("Already connected to a voice channel in guild `{}`.", guild.getName());
-            throw new JambotMusicPlayerException("I'm already connected!");
-        }
-
-        final var voiceState = member.getVoiceState();
-
-        if (Objects.isNull(voiceState) || !voiceState.inAudioChannel()) {
-            log.warn("User `{}` is not in voice channel.", member.getEffectiveName());
-            throw new JambotMusicPlayerException("Are you sure you're in a voice channel, yes?");
-        }
-
-        join(voiceState.getChannel());
+        final var guild = guildProvider.getGuild(guildId);
+        joinVoiceChannelOfMember(member, guild);
     }
 
     public void join(final AudioChannelUnion voiceChannel) {
-        if (isConnectedToVoiceChannel()) {
-            throw new JambotMusicPlayerException("I'm already connected!");
-        }
-
-        volume(100);
-
-        try {
-            guild.getAudioManager().openAudioConnection(voiceChannel);
-        } catch (InsufficientPermissionException e) {
-            throw new JambotMusicPlayerException(
-                    "I don't have enough permissions to join you, missing `%s`.".formatted(e.getPermission()));
-        }
-
-        if (!(guild.getAudioManager().getSendingHandler() instanceof AudioPlayerAudioSendHandler)) {
-            guild.getAudioManager().setSendingHandler(new AudioPlayerAudioSendHandler(audioPlayer));
-        }
+        final var guild = guildProvider.getGuild(guildId);
+        join(voiceChannel, guild);
     }
 
     public void leave() {
@@ -90,7 +55,8 @@ public class GuildMusicPlayer {
     }
 
     public void leave(final boolean scheduleTask) {
-        if (isConnectedToVoiceChannel()) {
+        final var guild = guildProvider.getGuild(guildId);
+        if (isConnectedToVoiceChannel(guild)) {
             if (scheduleTask) {
                 scheduleLeaveTask();
                 return;
@@ -118,8 +84,7 @@ public class GuildMusicPlayer {
 
             if (audioPlayer.isPaused()) {
                 scheduleLeaveTask();
-            }
-            else {
+            } else {
                 cancelLeaveTask();
             }
         }
@@ -167,19 +132,64 @@ public class GuildMusicPlayer {
     }
 
     public boolean isLeftAloneInVoiceChannel() {
-        return isConnectedToVoiceChannel() &&
-                guild.getAudioManager().getConnectedChannel().getMembers().size() <= 1;
+        return isLeftAloneInVoiceChannel(guildProvider.getGuild(guildId));
     }
 
     public boolean isConnectedToVoiceChannel() {
-        return guild.getAudioManager().isConnected();
+        return isConnectedToVoiceChannel(guildProvider.getGuild(guildId));
     }
 
-
     public boolean isSameVoiceChannelAsMember(final Member member) {
-        return isConnectedToVoiceChannel() &&
-                guild.getAudioManager().getConnectedChannel().getMembers().stream()
-                        .anyMatch(member::equals);
+        return isSameVoiceChannelAsMember(member, guildProvider.getGuild(guildId));
+    }
+
+    private void joinVoiceChannelOfUser(final User user, final Guild guild) {
+        final var member = guild.retrieveMember(user).complete();
+        if (Objects.isNull(member)) {
+            log.warn("User `{}` is not a member of guild `{}` or not joined any voice channel.",
+                    user.getName(),
+                    guild.getName());
+            throw new JambotMusicPlayerException("It appears I can't find you on a voice channel in the server...");
+        }
+
+        joinVoiceChannelOfMember(member, guild);
+    }
+
+    private void joinVoiceChannelOfMember(final Member member, final Guild guild) {
+        assertMemberInGuild(member, guild);
+
+        if (guild.getAudioManager().isConnected()) {
+            log.warn("Already connected to a voice channel in guild `{}`.", guild.getName());
+            throw new JambotMusicPlayerException("I'm already connected!");
+        }
+
+        final var voiceState = member.getVoiceState();
+
+        if (Objects.isNull(voiceState) || !voiceState.inAudioChannel()) {
+            log.warn("User `{}` is not in voice channel.", member.getEffectiveName());
+            throw new JambotMusicPlayerException("Are you sure you're in a voice channel, yes?");
+        }
+
+        join(voiceState.getChannel(), guild);
+    }
+
+    private void join(final AudioChannelUnion voiceChannel, final Guild guild) {
+        if (isConnectedToVoiceChannel(guild)) {
+            throw new JambotMusicPlayerException("I'm already connected!");
+        }
+
+        volume(100);
+
+        try {
+            guild.getAudioManager().openAudioConnection(voiceChannel);
+        } catch (InsufficientPermissionException e) {
+            throw new JambotMusicPlayerException(
+                    "I don't have enough permissions to join you, missing `%s`.".formatted(e.getPermission()));
+        }
+
+        if (!(guild.getAudioManager().getSendingHandler() instanceof AudioPlayerAudioSendHandler)) {
+            guild.getAudioManager().setSendingHandler(new AudioPlayerAudioSendHandler(audioPlayer));
+        }
     }
 
     private synchronized void scheduleLeaveTask() {
@@ -204,17 +214,27 @@ public class GuildMusicPlayer {
         scheduledLeaveTask = null;
     }
 
-    private void assertMemberInGuild(final Member member) {
+    private void assertMemberInGuild(final Member member, final Guild guild) {
         if (guild.getIdLong() != member.getGuild().getIdLong()) {
-            throw new JambotMusicPlayerException("User `%s` not part of guild `%s`.");
+            throw new JambotMusicPlayerException(
+                    "Member `%s` not part of guild `%s`.".formatted(
+                            member.getEffectiveName(),
+                            guild.getName()));
         }
-
-        assertUserInGuild(member.getUser());
     }
 
-    private void assertUserInGuild(final User user) {
-        if (!guild.isMember(user)) {
-            throw new JambotMusicPlayerException("User `%s` not part of guild `%s`.");
-        }
+    private boolean isLeftAloneInVoiceChannel(final Guild guild) {
+        return isConnectedToVoiceChannel(guild) &&
+                guild.getAudioManager().getConnectedChannel().getMembers().size() <= 1;
+    }
+
+    private boolean isConnectedToVoiceChannel(final Guild guild) {
+        return guild.getAudioManager().isConnected();
+    }
+
+    private boolean isSameVoiceChannelAsMember(final Member member, final Guild guild) {
+        return isConnectedToVoiceChannel(guild) &&
+                guild.getAudioManager().getConnectedChannel().getMembers().stream()
+                        .anyMatch(member::equals);
     }
 }

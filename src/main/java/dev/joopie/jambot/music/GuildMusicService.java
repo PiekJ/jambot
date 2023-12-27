@@ -30,7 +30,11 @@ public class GuildMusicService {
 
         final var audioPlayer = audioPlayerManager.createPlayer();
 
-        final var musicPlayer = new GuildMusicPlayer(guild, audioPlayer, taskScheduler);
+        final var musicPlayer = new GuildMusicPlayer(
+                guild.getIdLong(),
+                audioPlayer,
+                taskScheduler,
+                new GuildProvider(guild.getJDA()));
 
         audioPlayer.addListener(new AudioPlayerListener(musicPlayer));
 

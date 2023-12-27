@@ -34,6 +34,8 @@ public class JdaConfig {
                         CacheFlag.FORUM_TAGS,
                         CacheFlag.ONLINE_STATUS,
                         CacheFlag.SCHEDULED_EVENTS)
+                .enableCache(
+                        CacheFlag.VOICE_STATE)
                 .setMemberCachePolicy(MemberCachePolicy.VOICE)
                 .addEventListeners(listener)
                 .setActivity(Activity.playing("some music").withState("Yay"))
