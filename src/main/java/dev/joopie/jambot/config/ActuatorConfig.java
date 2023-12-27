@@ -20,7 +20,7 @@ public class ActuatorConfig {
     @Bean
     public Gauge countGuilds(MeterRegistry registry, GuildMusicService guildMusicService) {
         return Gauge.builder(
-                        "red.jambot.guilds.active",
+                        "red.jambot.guilds.connected",
                         guildMusicService,
                         GuildMusicService::countGuilds)
                 .register(registry);
