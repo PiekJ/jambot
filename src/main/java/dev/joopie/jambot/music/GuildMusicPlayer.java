@@ -106,7 +106,11 @@ public class GuildMusicPlayer {
 
     public synchronized void remove(final int songIndex) {
         if (songIndex >= audioTrackQueue.size()) {
-            throw new JambotMusicPlayerException("Song index is waaaaay to big for queued songs.");
+            throw new JambotMusicPlayerException("Track index is waaaaay to big for queued songs.");
+        }
+
+        if (songIndex < 0) {
+            throw new JambotMusicPlayerException("Track index is a bit small...");
         }
 
         var iteratorIndex = 0;

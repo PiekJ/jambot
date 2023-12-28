@@ -75,7 +75,7 @@ public class RemoveCommandHandler implements CommandHandler, CommandAutocomplete
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {
             return event.reply(exception.getMessage())
                     .setEphemeral(true);
-        } catch (IllegalStateException exception) {
+        } catch (IllegalStateException | ArithmeticException exception) {
             return event.reply("Invalid track number given. Enter numeric value.")
                     .setEphemeral(true);
         }

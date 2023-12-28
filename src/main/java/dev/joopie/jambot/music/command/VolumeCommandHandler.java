@@ -61,7 +61,7 @@ public class VolumeCommandHandler implements CommandHandler {
         } catch (JambotMusicServiceException | JambotMusicPlayerException exception) {
             return event.reply(exception.getMessage())
                     .setEphemeral(true);
-        } catch (IllegalStateException exception) {
+        } catch (IllegalStateException | ArithmeticException exception) {
             return event.reply("Invalid volume given. Enter numeric value.")
                     .setEphemeral(true);
         }
