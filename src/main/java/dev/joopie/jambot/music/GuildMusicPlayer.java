@@ -104,6 +104,25 @@ public class GuildMusicPlayer {
         scheduleLeaveTask();
     }
 
+    public synchronized void remove(final int songIndex) {
+        if (songIndex >= audioTrackQueue.size()) {
+            throw new JambotMusicPlayerException("Song index is waaaaay to big for queued songs.");
+        }
+
+        var iteratorIndex = 0;
+
+        final var iterator = audioTrackQueue.iterator();
+        while (iterator.hasNext()) {
+            iterator.next();
+
+            if (iteratorIndex++ == songIndex) {
+                iterator.remove();
+
+                break;
+            }
+        }
+    }
+
     public void clear() {
         audioTrackQueue.clear();
     }

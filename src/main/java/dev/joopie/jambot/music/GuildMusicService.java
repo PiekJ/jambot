@@ -108,6 +108,15 @@ public class GuildMusicService {
         musicPlayer.next();
     }
 
+    public void remove(final Member member, final int songIndex) {
+        final var musicPlayer = getAudioPlayer(member.getGuild());
+
+        assertConnectedToVoiceChannel(musicPlayer);
+        assertMemberInSameVoiceChannel(musicPlayer, member);
+
+        musicPlayer.remove(songIndex);
+    }
+
     public void clear(final Member member) {
         final var musicPlayer = getAudioPlayer(member.getGuild());
 
