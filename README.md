@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://discord.gg/cbGm82ptH4/"><img src="https://img.shields.io/badge/chat-on%20discord-7289da.svg" alt="Join our server"></a>
+  <a href="https://sonarcloud.io/summary/new_code?id=PiekJ_jambot"><img src="https://sonarcloud.io/api/project_badges/measure?project=PiekJ_jambot&metric=alert_status" alt="Quality Gate Status"></a>
 </p>
 <hr />
 
