@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.Member;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,6 +19,7 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class GuildMusicService {
+    private static final String RICKASTLEY = "https://youtu.be/E9TYbwI8xsE";
     private final AudioPlayerManager audioPlayerManager;
     private final Map<Long, GuildMusicPlayer> musicPlayerMap = new HashMap<>();
     private final TaskScheduler taskScheduler;
@@ -75,6 +77,10 @@ public class GuildMusicService {
         if (musicPlayer.isConnectedToVoiceChannel()) {
             assertMemberInSameVoiceChannel(musicPlayer, member);
         } else {
+            var localDate = LocalDate.now();
+            if (localDate.getMonthValue() == 4 && localDate.getDayOfMonth() == 1) { // April Fools Joke -- Only if the bot gets connected in a voice channel
+                audioPlayerManager.loadItemOrdered(musicPlayer, RICKASTLEY, new AudioTrackLoadResultHandler(musicPlayer));
+            }
             musicPlayer.joinVoiceChannelOfMember(member);
         }
 
