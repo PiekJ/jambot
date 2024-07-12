@@ -1,6 +1,7 @@
 package dev.joopie.jambot.music;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import io.micrometer.tracing.annotation.NewSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
@@ -71,6 +72,7 @@ public class GuildMusicService {
         musicPlayer.leave();
     }
 
+    @NewSpan("Play song in guild")
     public void play(final Member member, final String input) {
         final var musicPlayer = getAudioPlayer(member.getGuild());
 

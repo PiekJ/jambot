@@ -1,5 +1,7 @@
 package dev.joopie.jambot.command;
 
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.annotation.NewSpan;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;

@@ -1,0 +1,57 @@
+receivers:
+  hostmetrics:
+    collection_interval: 30s
+    initial_delay: 1s
+    scrapers:
+      cpu:
+        metrics:
+          system.cpu.utilization:
+            enabled: true
+      memory:
+        metrics:
+          system.memory.utilization:
+            enabled: true
+      network:
+  otlp:
+    protocols:
+      grpc:
+      http:
+
+exporters:
+  debug:
+    verbosity: normal
+  otlp/openobserve:
+    endpoint: api.openobserve.ai:5081
+    headers:
+      Authorization: ""
+      organization: jos_organization_19892_Jbiies5cIDp5HHj
+      stream-name: default
+    tls:
+      insecure: true
+
+processors:
+  batch:
+
+  resourcedetection:
+    detectors: [env,system]
+    timeout: 2s
+
+service:
+  extensions: []
+  pipelines:
+#    logs:
+#      receivers: [otlp,tcplog/docker]
+#      processors: [batch]
+#      exporters: [otlp/openobserve,debug]
+    metrics:
+      receivers: [otlp]
+      processors: []
+      exporters: [debug]
+#    metrics/host:
+#      receivers: [hostmetrics]
+#      processors: [resourcedetection,batch]
+#      exporters: [otlp/openobserve,debug]
+    traces:
+      receivers: [otlp]
+      processors: []
+      exporters: [debug]

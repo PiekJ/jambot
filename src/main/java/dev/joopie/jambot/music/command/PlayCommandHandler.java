@@ -8,6 +8,8 @@ import dev.joopie.jambot.music.JambotMusicPlayerException;
 import dev.joopie.jambot.music.JambotMusicServiceException;
 import dev.joopie.jambot.api.youtube.JambotYouTubeException;
 import dev.joopie.jambot.music.GuildMusicService;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.annotation.NewSpan;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -66,6 +68,7 @@ public class PlayCommandHandler implements CommandHandler {
     }
 
     @Override
+    @Observed(name = "Play Command Handler")
     public RestAction<?> handle(final CommandInteraction event) {
         final var inputOption = event.getOption(COMMAND_OPTION_INPUT_NAME);
 

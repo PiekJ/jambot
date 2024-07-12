@@ -1,0 +1,5 @@
+# Ignore all files
+*
+
+# Except compiled jar
+!target/jambot.jar

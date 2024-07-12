@@ -1,6 +1,8 @@
 package dev.joopie.jambot.music.command;
 
 import dev.joopie.jambot.command.CommandHandler;
+import io.micrometer.observation.annotation.Observed;
+import io.micrometer.tracing.SpanName;
 import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
@@ -33,6 +35,7 @@ public class JamCommandHandler implements CommandHandler {
     }
 
     @Override
+    @Observed(name = "Jam Command Handler")
     public RestAction<?> handle(CommandInteraction event) {
         return playCommandHandler.handle(event);
     }

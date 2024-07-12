@@ -17,22 +17,34 @@
 
 	<properties>
 		<java.version>21</java.version>
+
+		<!-- Sonar Properties -->
 		<sonar.projectKey>PiekJ_jambot</sonar.projectKey>
 		<sonar.organization>piekj</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 	</properties>
 
 	<dependencies>
+		<!-- Spring Boot -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webflux</artifactId>
 		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
 
+		<!-- Telemetry -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
@@ -40,54 +52,89 @@
 		<dependency>
 			<groupId>io.micrometer</groupId>
 			<artifactId>micrometer-registry-otlp</artifactId>
-			<scope>runtime</scope>
 		</dependency>
-
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-configuration-processor</artifactId>
-			<optional>true</optional>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-tracing</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.micrometer</groupId>
+			<artifactId>micrometer-tracing-bridge-otel</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>io.opentelemetry</groupId>
+			<artifactId>opentelemetry-exporter-otlp</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>co.elastic.logging</groupId>
+			<artifactId>logback-ecs-encoder</artifactId>
+			<version>1.6.0</version>
 		</dependency>
 
+		<!-- Application Specific -->
 		<dependency>
 			<groupId>dev.arbjerg</groupId>
 			<artifactId>lavaplayer</artifactId>
 			<version>afec211f05c9dcf0b6ee44276a02f0316ea2458a-SNAPSHOT</version>
 		</dependency>
-
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>5.0.0-beta.18</version>
+			<version>5.0.0-beta.21</version>
 		</dependency>
-
 		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-			<optional>true</optional>
+			<groupId>se.michaelthelin.spotify</groupId>
+			<artifactId>spotify-web-api-java</artifactId>
+			<version>8.3.3</version>
 		</dependency>
 
+		<!-- Test -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Source Generators -->
 		<dependency>
-			<groupId>se.michaelthelin.spotify</groupId>
-			<artifactId>spotify-web-api-java</artifactId>
-			<version>8.3.6</version>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<optional>true</optional>
 		</dependency>
 	</dependencies>
 
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>io.opentelemetry</groupId>
+				<artifactId>opentelemetry-bom</artifactId>
+				<version>1.36.0</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<dependency>
+				<groupId>io.opentelemetry.instrumentation</groupId>
+				<artifactId>opentelemetry-instrumentation-bom-alpha</artifactId>
+				<version>2.2.0-alpha</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<repositories>
 		<repository>
-			<id>dv8tion</id>
-			<name>m2-dv8tion</name>
-			<url>https://m2.dv8tion.net/releases</url>
+			<id>maven2</id>
+			<name>Maven2 Central</name>
+			<url>https://repo.maven.apache.org/maven2</url>
 		</repository>
 		<repository>
 			<id>jitpack</id>
 			<url>https://jitpack.io</url>
+			<!-- Needed for the following dependencies:
+			 	  - com.github.walkyst.JAADec-fork:jaadec-ext-aac
+			 	  - com.github.walkyst:ibxm-fork
+			 -->
 		</repository>
 		<repository>
 			<id>lavalink</id>
@@ -96,6 +143,8 @@
 	</repositories>
 
 	<build>
+		<finalName>${project.artifactId}</finalName>
+
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

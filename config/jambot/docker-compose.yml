@@ -1,0 +1,25 @@
+services:
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib
+    container_name: jambot-telemetry-collector
+    volumes:
+      - ./otel-collector-config.yml:/etc/otelcol-contrib/config.yaml
+    network_mode: host
+    labels:
+      red.jambot.logs.exclude: true
+    restart: on-failure
+  jambot:
+    image: ghcr.io/piekj/jambot
+    restart: always
+    ports:
+      - 8080:8080
+    volumes:
+      - ./logs/
+    env_file:
+      - .env
+    environment:
+      MANAGEMENT_OTLP_TRACING_ENDPOINT: http://192.168.2.35:4318/v1/traces
+      MANAGEMENT_OTLP_METRICS_EXPORT_URL: http://192.168.2.35:4318/v1/metrics
+      MANAGEMENT_METRICS_TAGS_ENV: production
+      MANAGEMENT_TRACING_SAMPLING_PROBABILITY: 1.0
+      LOGGING_FILE_PATH: /app/logs

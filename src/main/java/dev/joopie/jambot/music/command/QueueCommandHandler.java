@@ -3,7 +3,9 @@ package dev.joopie.jambot.music.command;
 import dev.joopie.jambot.command.CommandHandler;
 import dev.joopie.jambot.music.GuildMusicService;
 import dev.joopie.jambot.music.AudioTrackInfoDto;
+import io.micrometer.observation.annotation.Observed;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
@@ -17,6 +19,7 @@ import java.awt.*;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class QueueCommandHandler implements CommandHandler {
@@ -42,8 +45,11 @@ public class QueueCommandHandler implements CommandHandler {
     }
 
     @Override
+    @Observed(name = "Queue Command Handler")
     public RestAction<?> handle(final CommandInteraction event) {
         final var dtos = musicService.getQueuedAudioTracks(event.getGuild());
+
+        log.info("Test logging or w.e.");
 
         final var builder = new EmbedBuilder();
         builder.setColor(new Color(0x0099FF));
