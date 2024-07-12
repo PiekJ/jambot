@@ -33,7 +33,7 @@ jobs:
       - name: Build JAR
         run: mvn clean install -DskipTests
       - name: Build and Publish Image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           push: true
