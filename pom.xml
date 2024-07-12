@@ -43,11 +43,6 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>io.micrometer</groupId>
-			<artifactId>micrometer-registry-otlp</artifactId>
-			<scope>runtime</scope>
-		</dependency>
 
 		<!-- Application Specific -->
 		<dependency>
@@ -63,7 +58,7 @@
 		<dependency>
 			<groupId>net.dv8tion</groupId>
 			<artifactId>JDA</artifactId>
-			<version>5.0.0-beta.22</version>
+			<version>5.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>se.michaelthelin.spotify</groupId>
