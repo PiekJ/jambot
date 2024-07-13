@@ -59,6 +59,7 @@ public class ApiSpotifyService {
         final var getTrackRequest = spotifyApi.getTrack(trackId.get()).build();
 
         try {
+            //TODO Save relevant info into our database for later use
             final var track = getTrackRequest.execute();
             return Optional.of(getFormattedTrack(track));
 

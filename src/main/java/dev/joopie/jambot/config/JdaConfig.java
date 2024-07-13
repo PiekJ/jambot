@@ -1,6 +1,7 @@
 package dev.joopie.jambot.config;
 
 import dev.joopie.jambot.JambotListener;
+import dev.joopie.jambot.listeners.PlayReactionEventListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
@@ -18,12 +19,15 @@ import java.util.List;
 @EnableConfigurationProperties(JdaProperties.class)
 public class JdaConfig {
     @Bean
-    public JDA jda(final JdaProperties properties, final JambotListener listener) throws LoginException {
+    public JDA jda(final JdaProperties properties, final JambotListener listener, final PlayReactionEventListener playReactionEventListener) throws LoginException {
         return JDABuilder.create(
                         properties.getToken(),
                         List.of(
                                 GatewayIntent.GUILD_VOICE_STATES,
-                                GatewayIntent.DIRECT_MESSAGES))
+                                GatewayIntent.DIRECT_MESSAGES,
+                                GatewayIntent.GUILD_MESSAGES,
+                                GatewayIntent.GUILD_MESSAGE_REACTIONS,
+                                GatewayIntent.MESSAGE_CONTENT))
                 .disableCache(
                         CacheFlag.ACTIVITY,
                         CacheFlag.EMOJI,
@@ -38,6 +42,7 @@ public class JdaConfig {
                         CacheFlag.VOICE_STATE)
                 .setMemberCachePolicy(MemberCachePolicy.VOICE)
                 .addEventListeners(listener)
+                .addEventListeners(playReactionEventListener)
                 .setActivity(Activity.playing("some music").withState("Yay"))
                 .build();
     }

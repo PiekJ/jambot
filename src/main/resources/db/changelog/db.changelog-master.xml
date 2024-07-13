@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="1" author="Carsten Flokstra">
+        <createTable tableName="spotify_to_youtube">
+            <column name="objectid" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="youtube_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="spotify_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="dateTime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="dateTime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <!-- New changeSet to create index -->
+    <changeSet id="2" author="Carsten Flokstra">
+        <createIndex tableName="spotify_to_youtube" indexName="idx_spotify_youtube">
+            <column name="youtube_id"/>
+            <column name="spotify_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -7,6 +7,8 @@ import lombok.RequiredArgsConstructor;
 @Data
 @Builder
 @RequiredArgsConstructor
+
+//TODO; Save this as Youtube Video in Database
 public class SearchResultDto {
     private final boolean found;
 
