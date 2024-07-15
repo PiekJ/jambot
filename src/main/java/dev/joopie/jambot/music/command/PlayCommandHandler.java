@@ -2,14 +2,15 @@ package dev.joopie.jambot.music.command;
 
 import dev.joopie.jambot.api.spotify.ApiSpotifyService;
 import dev.joopie.jambot.api.youtube.ApiYouTubeService;
+import dev.joopie.jambot.api.youtube.JambotYouTubeException;
 import dev.joopie.jambot.api.youtube.SearchResultDto;
 import dev.joopie.jambot.command.CommandHandler;
-import dev.joopie.jambot.models.SpotifyToYoutube;
+import dev.joopie.jambot.models.Track;
+import dev.joopie.jambot.models.TrackSource;
+import dev.joopie.jambot.music.GuildMusicService;
 import dev.joopie.jambot.music.JambotMusicPlayerException;
 import dev.joopie.jambot.music.JambotMusicServiceException;
-import dev.joopie.jambot.api.youtube.JambotYouTubeException;
-import dev.joopie.jambot.music.GuildMusicService;
-import dev.joopie.jambot.service.SpotifyToYoutubeService;
+import dev.joopie.jambot.service.TrackSourceService;
 import dev.joopie.jambot.util.SpotifyLinkParser;
 import dev.joopie.jambot.util.YouTubeLinkParser;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ import org.springframework.stereotype.Component;
 
 import java.awt.*;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Component
@@ -44,7 +45,7 @@ public class PlayCommandHandler implements CommandHandler {
     private final GuildMusicService musicService;
     private final ApiYouTubeService apiYouTubeService;
     private final ApiSpotifyService apiSpotifyService;
-    private final SpotifyToYoutubeService spotifyToYoutubeService;
+    private final TrackSourceService trackSourceService;
     private boolean isAvailable = false;
 
     @Override
@@ -121,7 +122,7 @@ public class PlayCommandHandler implements CommandHandler {
 
     private WebhookMessageCreateAction<Message> handleSpotifyLink(CommandInteraction event, String input) {
         // First check if we have records in the DB
-        SpotifyToYoutube track = spotifyToYoutubeService.findBySpotifyId(SpotifyLinkParser.extractSpotifyId(input));
+        TrackSource track = trackSourceService.findBySpotifyId(SpotifyLinkParser.extractSpotifyId(input));
 
         if (track != null) {
             return handleNormalLink(event, track.getYoutubeId());
@@ -129,40 +130,26 @@ public class PlayCommandHandler implements CommandHandler {
 
         if (input.contains("track")) {
 
-            final var spotifyResult = apiSpotifyService.getTrack(input);
+            final Optional<Track> spotifyResult = apiSpotifyService.getTrack(input);
             if (spotifyResult.isEmpty()) {
                 return event.getHook()
                         .sendMessage("That's bad! We could not find anything for the given Spotify link. Did you copy the correct link?")
                         .setEphemeral(true);
             }
-            SpotifyToYoutube spotifyToYoutube = new SpotifyToYoutube();
-            spotifyToYoutube.setSpotifyId(SpotifyLinkParser.extractSpotifyId(input));
-            SearchResultDto dto = performYoutubeSearch(spotifyResult.get());
-            spotifyToYoutube.setYoutubeId(dto.getVideoId());
-            spotifyToYoutubeService.save(spotifyToYoutube);
+            TrackSource trackSource = new TrackSource();
+            trackSource.setSpotifyId(SpotifyLinkParser.extractSpotifyId(input));
+            SearchResultDto dto = performYoutubeSearch(spotifyResult.get().getFormattedTrack());
+            trackSource.setYoutubeId(dto.getVideoId());
+            trackSource.setTrack(spotifyResult.get());
+
+            trackSourceService.save(trackSource);
 
             return handlePlayWithReactions(event, dto);
 
         } else if (input.contains("playlist")) {
-            if (isAvailable) {
-                final var counter = new AtomicInteger(0);
-                apiSpotifyService.getTracksFromPlaylist(input)
-                        .forEach(result -> {
-                            var playlistresult = apiYouTubeService.searchForSong(result);
-
-                            if (playlistresult.isFound()) {
-                                musicService.play(event.getMember(), playlistresult.getVideoId());
-                                counter.getAndIncrement();
-                            }
-                        });
-
-                return event.getHook()
-                        .sendMessage("Imported playlist. Queued %s items!".formatted(counter));
-            } else {
-                return event.getHook()
+            return event.getHook()
                         .sendMessage("The use of Spotify Playlist links is currently not available")
                         .setEphemeral(true);
-            }
         }
 
         return event.getHook()

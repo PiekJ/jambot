@@ -1,22 +1,24 @@
 package dev.joopie.jambot.config;
 
-import io.ebean.config.DatabaseConfig;
-import io.ebean.datasource.DataSourceConfig;
 import io.ebean.Database;
 import io.ebean.DatabaseFactory;
+import io.ebean.config.DatabaseConfig;
+import io.ebean.datasource.DataSourceConfig;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@EnableConfigurationProperties(SpringDatasourceProperties.class)
 public class EbeanConfig {
 
     @Bean
-    public Database ebeanDatabase() {
+    public Database ebeanDatabase(SpringDatasourceProperties properties) {
         DataSourceConfig dataSourceConfig = new DataSourceConfig();
-        dataSourceConfig.setUrl("jdbc:mariadb://localhost:3306/jambot");
-        dataSourceConfig.setUsername("root");
-        dataSourceConfig.setPassword("root");
-        dataSourceConfig.setDriver("org.mariadb.jdbc.Driver");
+        dataSourceConfig.setUrl(properties.getUrl());
+        dataSourceConfig.setUsername(properties.getUsername());
+        dataSourceConfig.setPassword(properties.getPassword());
+        dataSourceConfig.setDriver(properties.getDriverClassName());
 
         DatabaseConfig config = new DatabaseConfig();
         config.setDataSourceConfig(dataSourceConfig);

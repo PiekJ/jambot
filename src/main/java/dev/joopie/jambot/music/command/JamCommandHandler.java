@@ -13,7 +13,6 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JamCommandHandler implements CommandHandler {
     private static final String COMMAND_NAME = "jam";
-
     private final PlayCommandHandler playCommandHandler;
 
     @Override

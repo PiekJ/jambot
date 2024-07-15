@@ -1,22 +1,24 @@
 package dev.joopie.jambot.models;
 
-import io.ebean.Model;
+import dev.joopie.jambot.models.base.BaseModel;
 import lombok.Getter;
 import lombok.Setter;
 
 
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.Id;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 @Getter
 @Setter
 @Entity
-@Table(name = "spotify_to_youtube")
-public class SpotifyToYoutube extends BaseModel<SpotifyToYoutube> {
+@Table(name = "track_source")
+public class TrackSource extends BaseModel<TrackSource> {
     private String youtubeId;
     private String spotifyId;
+
+    @OneToOne
+    private Track track;
 
     @Override
     public boolean validateSave() {

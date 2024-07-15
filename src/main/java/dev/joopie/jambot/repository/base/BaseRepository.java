@@ -1,6 +1,6 @@
 package dev.joopie.jambot.repository.base;
 
-import dev.joopie.jambot.models.BaseModel;
+import dev.joopie.jambot.models.base.BaseModel;
 import io.ebean.DB;
 
 import javax.xml.bind.ValidationException;

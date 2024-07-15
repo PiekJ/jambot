@@ -1,4 +1,4 @@
-package dev.joopie.jambot.models;
+package dev.joopie.jambot.models.base;
 
 import io.ebean.Model;
 import lombok.Getter;
@@ -14,21 +14,26 @@ public abstract class BaseModel<T> extends Model {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long objectid;
+    private long id;
 
-    @Temporal(TemporalType.DATE)
+    @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
-    @Temporal(TemporalType.DATE)
+    @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Version
     private int version;
 
+    @PrePersist
+    protected void prePersist() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
+    }
+
     @PreUpdate
-    public void preUpdate() {
-        this.updatedAt =  LocalDateTime.now();
-        this.version = version++;
+    protected void preUpdate() {
+        this.updatedAt = LocalDateTime.now();
     }
 
     public boolean validateSave() {

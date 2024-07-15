@@ -1,7 +1,7 @@
 package dev.joopie.jambot.listeners;
 
-import dev.joopie.jambot.models.SpotifyToYoutube;
-import dev.joopie.jambot.service.SpotifyToYoutubeService;
+import dev.joopie.jambot.models.TrackSource;
+import dev.joopie.jambot.service.TrackSourceService;
 import dev.joopie.jambot.util.YouTubeLinkParser;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
@@ -10,10 +10,10 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class PlayReactionEventListener extends ListenerAdapter {
-    private final SpotifyToYoutubeService spotifyToYoutubeService;
+    private final TrackSourceService trackSourceService;
 
-    public PlayReactionEventListener(SpotifyToYoutubeService spotifyToYoutubeService) {
-        this.spotifyToYoutubeService = spotifyToYoutubeService;
+    public PlayReactionEventListener(TrackSourceService trackSourceService) {
+        this.trackSourceService = trackSourceService;
     }
 
     @Override
@@ -28,15 +28,15 @@ public class PlayReactionEventListener extends ListenerAdapter {
             message.getChannel().sendMessage("Link confirmed!").queue();
         } else if (emoji.equals("❌")) { // ❌
             // Reject the link and delete the SpotifyToYoutube record
-            SpotifyToYoutube spotifyToYoutube = getSpotifyToYoutubeFromMessage(message);
-            if (spotifyToYoutube != null) {
-                spotifyToYoutubeService.delete(spotifyToYoutube);
+            TrackSource trackSource = getSpotifyToYoutubeFromMessage(message);
+            if (trackSource != null) {
+                trackSourceService.delete(trackSource);
                 message.getChannel().sendMessage("Thanks for your input! \uD83E\uDD29 Only together we can make Jambot better. I will try to get another link next time.").queue();
             }
         }
     }
 
-    private SpotifyToYoutube getSpotifyToYoutubeFromMessage(Message message) {
-        return spotifyToYoutubeService.findByYoutubeId(YouTubeLinkParser.extractYouTubeId(message.getContentStripped()));
+    private TrackSource getSpotifyToYoutubeFromMessage(Message message) {
+        return trackSourceService.findByYoutubeId(YouTubeLinkParser.extractYouTubeId(message.getContentStripped()));
     }
 }
