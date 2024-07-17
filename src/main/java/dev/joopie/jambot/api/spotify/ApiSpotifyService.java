@@ -1,9 +1,13 @@
 package dev.joopie.jambot.api.spotify;
 
+import dev.joopie.jambot.models.Track;
+import dev.joopie.jambot.repository.track.TrackRepository;
 import dev.joopie.jambot.service.SpotifyAPIConverterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.SpotifyApi;
@@ -20,12 +24,16 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class ApiSpotifyService {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiSpotifyService.class);
     private static final Pattern SPOTIFY_URL_PATTERN = Pattern.compile("https?:\\/\\/(?:open\\.)?spotify.com\\/(user|episode|playlist|track)\\/(?:spotify\\/playlist\\/)?(\\w*)");
     private final SpotifyProperties properties;
     private SpotifyApi spotifyApi;
 
     @Autowired
     private final SpotifyAPIConverterService spotifyAPIConverterService;
+
+    @Autowired
+    private final TrackRepository trackRepository;
     private LocalDateTime tokenExpireDate;
 
 
@@ -49,8 +57,8 @@ public class ApiSpotifyService {
         }
     }
 
-    public Optional<dev.joopie.jambot.models.Track> getTrack(String link) {
-        Optional <dev.joopie.jambot.models.Track> track = Optional.empty();
+    public Optional<Track> getTrack(String link) {
+        Optional <Track> track = Optional.empty();
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
@@ -74,6 +82,32 @@ public class ApiSpotifyService {
         }
 
         return Optional.empty();
+    }
+
+    public Optional<Track> searchForTrack(String searchQuery) {
+        se.michaelthelin.spotify.model_objects.specification.Track[] searchResult = new se.michaelthelin.spotify.model_objects.specification.Track[0];
+        if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
+            initSpotifyAccessToken();
+        }
+
+
+        try {
+            searchResult = spotifyApi.searchTracks(searchQuery).build().execute().getItems();
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            LOGGER.error("Error while fetching the Spotify API");
+        }
+
+        if (searchResult == null || searchResult.length == 0) {
+            return Optional.empty();
+        }
+
+        Track dbTrack = trackRepository.find().byExternalId(searchResult[0].getId());
+
+        if (dbTrack == null) {
+            return Optional.of(spotifyAPIConverterService.saveAPIResult(searchResult[0]));
+        } else {
+            return Optional.of(dbTrack);
+        }
     }
 
 

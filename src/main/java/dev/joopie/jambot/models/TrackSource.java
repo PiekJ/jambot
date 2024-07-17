@@ -4,10 +4,7 @@ import dev.joopie.jambot.models.base.BaseModel;
 import lombok.Getter;
 import lombok.Setter;
 
-
-import javax.persistence.Entity;
-import javax.persistence.OneToOne;
-import javax.persistence.Table;
+import javax.persistence.*;
 
 @Getter
 @Setter
@@ -18,10 +15,11 @@ public class TrackSource extends BaseModel<TrackSource> {
     private String spotifyId;
 
     @OneToOne
+    @JoinColumn(name = "track_id", referencedColumnName = "id")
     private Track track;
 
     @Override
     public boolean validateSave() {
-        return !spotifyId.isEmpty() && !youtubeId.isEmpty();
+        return spotifyId != null && !spotifyId.isEmpty() && youtubeId != null && !youtubeId.isEmpty();
     }
 }

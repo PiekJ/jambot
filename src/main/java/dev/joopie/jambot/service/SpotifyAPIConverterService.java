@@ -16,6 +16,7 @@ import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 
 import javax.xml.bind.ValidationException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -33,8 +34,8 @@ public class SpotifyAPIConverterService {
     private TrackRepository trackRepository;
 
     public Track saveAPIResult(se.michaelthelin.spotify.model_objects.specification.Track trackresult) {
-        Track track = null;
-        if (trackRepository.find().byExternalId(trackresult.getId()) == null) {
+        Track track = trackRepository.find().byExternalId(trackresult.getId());
+        if (track == null) {
             try {
                 List<Artist> artists = convertArtists(trackresult);
                 Album album = convertAlbum(trackresult, artists);
@@ -51,6 +52,7 @@ public class SpotifyAPIConverterService {
     private Track convertTrack(se.michaelthelin.spotify.model_objects.specification.Track trackresult, List<Artist> artists, Album album) throws ValidationException {
         Track track = new dev.joopie.jambot.models.Track();
         track.setName(trackresult.getName());
+        track.setDuration(Duration.ofMillis(trackresult.getDurationMs()));
         track.setArtists(artists);
         track.setAlbum(Set.of(album));
         track.setExternalId(trackresult.getId());

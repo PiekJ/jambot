@@ -3,21 +3,20 @@ package dev.joopie.jambot.music.command;
 import dev.joopie.jambot.api.spotify.ApiSpotifyService;
 import dev.joopie.jambot.api.youtube.ApiYouTubeService;
 import dev.joopie.jambot.api.youtube.JambotYouTubeException;
-import dev.joopie.jambot.api.youtube.SearchResultDto;
 import dev.joopie.jambot.command.CommandHandler;
+import dev.joopie.jambot.models.Artist;
 import dev.joopie.jambot.models.Track;
 import dev.joopie.jambot.models.TrackSource;
 import dev.joopie.jambot.music.GuildMusicService;
 import dev.joopie.jambot.music.JambotMusicPlayerException;
 import dev.joopie.jambot.music.JambotMusicServiceException;
+import dev.joopie.jambot.service.TrackService;
 import dev.joopie.jambot.service.TrackSourceService;
 import dev.joopie.jambot.util.SpotifyLinkParser;
 import dev.joopie.jambot.util.YouTubeLinkParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
@@ -27,12 +26,14 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
+import org.apache.logging.log4j.util.Strings;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -42,11 +43,23 @@ public class PlayCommandHandler implements CommandHandler {
     private static final String COMMAND_OPTION_INPUT_NAME = "input";
     private static final String SPOTIFY_URL = "spotify";
     private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
+    public static final Pattern URL_PATTERN = Pattern.compile("^(http(|s)://.*)$");
+
+    @Autowired
     private final GuildMusicService musicService;
+
+    @Autowired
     private final ApiYouTubeService apiYouTubeService;
+
+    @Autowired
     private final ApiSpotifyService apiSpotifyService;
+
+    @Autowired
     private final TrackSourceService trackSourceService;
-    private boolean isAvailable = false;
+
+    @Autowired
+    private final TrackService trackService;
+
 
     @Override
     public Command.Type type() {
@@ -81,16 +94,22 @@ public class PlayCommandHandler implements CommandHandler {
 
         try {
             final var input = inputOption.getAsString();
+            String videoId = Strings.EMPTY;
+
+            if (!URL_OR_ID_PATTERN.matcher(input).matches()) {
+               videoId = performSpotifyAndYoutubeSearch(input);;
+            }
 
             if (input.contains(SPOTIFY_URL)) {
-                return handleSpotifyLink(event, input);
+                videoId = handleSpotifyLink(input);
+            } else if (URL_OR_ID_PATTERN.matcher(input).matches()) {
+                videoId = input;
             }
 
-            if (URL_OR_ID_PATTERN.matcher(input).matches()) {
-                return handleNormalLink(event, input);
-            } else {
-                return handlePlay(event, performYoutubeSearch(input));
+            if (Strings.isEmpty(videoId)) {
+                return event.getHook().sendMessage("Unfortunately we did not find any results!");
             }
+            return handlePlay(event, videoId);
 
         } catch (JambotMusicServiceException | JambotMusicPlayerException | JambotYouTubeException exception) {
             return event.getHook().sendMessage(exception.getMessage())
@@ -98,89 +117,61 @@ public class PlayCommandHandler implements CommandHandler {
         }
     }
 
-    public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, SearchResultDto dto) {
-        if (dto.isFound()) {
-            musicService.play(event.getMember(), dto.getVideoId());
-            return event.getHook()
-                    .sendMessageEmbeds(createMessageEmbedOfSearchTrack(event.getGuild().getName(), dto));
+    public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, String videoId) {
+        musicService.play(event.getMember(), videoId);
+
+        String parsedVideoId;
+        if (URL_PATTERN.matcher(videoId).matches()) {
+            parsedVideoId = videoId;
         } else {
-            return event.getHook()
-                    .sendMessage("Or the internet is broken, or we did not have Dora the Explorer to help to find the track that you are looking for. No results found for the given search result")
-                    .setEphemeral(true);
+            parsedVideoId = YouTubeLinkParser.parseIdToYouTubeWatchUrl(videoId);
+        }
+
+        WebhookMessageCreateAction<Message> action = event.getHook()
+                .sendMessage("OK, we added the track to the queue! %s. Please let us know ✅ or ❌ if we got the correct result for you.".formatted(parsedVideoId));
+        action.queue(message -> {
+            message.addReaction(Emoji.fromUnicode("U+2705")).queue();
+            message.addReaction(Emoji.fromUnicode("U+274C")).queue();
+        });
+        return action;
+    }
+
+    private String performYoutubeSearch(Track track) {
+            TrackSource trackSource = new TrackSource();
+            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(10), track.getDuration().plusSeconds(10), track.getArtists().stream().map(Artist::getName).collect(Collectors.toList())).getVideoId());
+            trackSource.setSpotifyId(track.getExternalId());
+            trackSource.setTrack(track);
+            trackSourceService.save(trackSource);
+            return trackSource.getYoutubeId();
+    }
+
+    private String performSpotifyAndYoutubeSearch(String input) {
+        Optional<Track> track = apiSpotifyService.searchForTrack(input);
+
+        if (track.isPresent() && track.get().getTrackSource() != null) {
+            return track.get().getTrackSource().getYoutubeId();
+        } else if (track.isPresent()) {
+           return performYoutubeSearch(track.get());
+        } else {
+            return Strings.EMPTY;
         }
     }
 
-    private SearchResultDto performYoutubeSearch(String input) {
-        return apiYouTubeService.searchForSong(input);
-    }
-
-    private WebhookMessageCreateAction<Message> handleNormalLink(CommandInteraction event, String input) {
-        musicService.play(event.getMember(), input);
-        return event.getHook()
-                .sendMessage("OK, we added the track to the queue! %s".formatted(YouTubeLinkParser.parseIdToYouTubeWatchUrl(input)));
-    }
-
-    private WebhookMessageCreateAction<Message> handleSpotifyLink(CommandInteraction event, String input) {
+    private String handleSpotifyLink(String input) {
         // First check if we have records in the DB
-        TrackSource track = trackSourceService.findBySpotifyId(SpotifyLinkParser.extractSpotifyId(input));
+        Track track = trackService.findByExternalId(SpotifyLinkParser.extractSpotifyId(input));
 
-        if (track != null) {
-            return handleNormalLink(event, track.getYoutubeId());
+        if (track != null && track.getTrackSource() != null && track.getTrackSource().getYoutubeId() != null) {
+            return track.getTrackSource().getYoutubeId();
         }
 
         if (input.contains("track")) {
 
             final Optional<Track> spotifyResult = apiSpotifyService.getTrack(input);
-            if (spotifyResult.isEmpty()) {
-                return event.getHook()
-                        .sendMessage("That's bad! We could not find anything for the given Spotify link. Did you copy the correct link?")
-                        .setEphemeral(true);
-            }
-            TrackSource trackSource = new TrackSource();
-            trackSource.setSpotifyId(SpotifyLinkParser.extractSpotifyId(input));
-            SearchResultDto dto = performYoutubeSearch(spotifyResult.get().getFormattedTrack());
-            trackSource.setYoutubeId(dto.getVideoId());
-            trackSource.setTrack(spotifyResult.get());
+            return spotifyResult.map(this::performYoutubeSearch).orElse(null);
 
-            trackSourceService.save(trackSource);
-
-            return handlePlayWithReactions(event, dto);
-
-        } else if (input.contains("playlist")) {
-            return event.getHook()
-                        .sendMessage("The use of Spotify Playlist links is currently not available")
-                        .setEphemeral(true);
         }
 
-        return event.getHook()
-                .sendMessage("Well this is awkward. But I do not know what to do with this Spotify Link")
-                .setEphemeral(true);
-    }
-
-    private WebhookMessageCreateAction<Message> handlePlayWithReactions(CommandInteraction event, SearchResultDto dto) {
-        if (dto.isFound()) {
-            musicService.play(event.getMember(), dto.getVideoId());
-            WebhookMessageCreateAction<Message> action = event.getHook()
-                    .sendMessageEmbeds(createMessageEmbedOfSearchTrack(event.getGuild().getName(), dto));
-            action.queue(message -> {
-                message.addReaction(Emoji.fromUnicode("U+2705")).queue();
-                message.addReaction(Emoji.fromUnicode("U+274C")).queue();
-            });
-            return action;
-        } else {
-            return event.getHook()
-                    .sendMessage("Or the internet is broken, or we did not have Dora the Explorer to help to find the track that you are looking for. No results found for the given search result")
-                    .setEphemeral(true);
-        }
-    }
-
-
-    private static MessageEmbed createMessageEmbedOfSearchTrack(final String guildName, final SearchResultDto dto) {
-        return new EmbedBuilder()
-                .setColor(new Color(0x0099FF))
-                .setTitle("%s Track Queued".formatted(guildName))
-                .setDescription(dto.getTitle())
-                .setImage(dto.getThumbnailUrl())
-                .build();
+        return Strings.EMPTY;
     }
 }

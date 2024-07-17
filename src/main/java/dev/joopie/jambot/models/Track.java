@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import javax.persistence.*;
+import java.time.Duration;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -17,23 +18,25 @@ public class Track extends BaseModel<Track> {
 
     @OneToMany
     @JoinTable(
-            name="track_artist",
-            joinColumns = @JoinColumn( name="track_id"),
-            inverseJoinColumns = @JoinColumn( name="artist_id")
+            name = "track_artist",
+            joinColumns = @JoinColumn(name = "track_id"),
+            inverseJoinColumns = @JoinColumn(name = "artist_id")
     )
     private List<Artist> artists;
+
     private String name;
 
-    @OneToMany (targetEntity = Album.class)
-    @JoinTable (name = "album_track",
+    @OneToMany(targetEntity = Album.class)
+    @JoinTable(name = "album_track",
             joinColumns = @JoinColumn(name = "album_id"),
             inverseJoinColumns = @JoinColumn(name = "track_id"))
     private Set<Album> album;
 
     private String externalId;
 
-    @OneToOne (targetEntity = TrackSource.class)
-    @JoinTable (name = "track_source", joinColumns = @JoinColumn(name = "id"), inverseJoinColumns = @JoinColumn(name = "track_id"))
+    private Duration duration;
+
+    @OneToOne(mappedBy = "track", fetch = FetchType.EAGER)
     private TrackSource trackSource;
 
     public String getFormattedTrack() {
