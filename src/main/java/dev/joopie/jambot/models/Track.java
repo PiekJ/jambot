@@ -41,7 +41,7 @@ public class Track extends BaseModel<Track> {
 
     public String getFormattedTrack() {
         var artists = getArtists().stream()
-                .map(dev.joopie.jambot.models.Artist::getName)
+                .map(Artist::getName)
                 .collect(Collectors.joining(","));
         return "%s-%s".formatted(artists, getName());
     }

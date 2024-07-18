@@ -1,39 +1,30 @@
 package dev.joopie.jambot.models.album;
 
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
-import java.util.HashMap;
+import java.util.Arrays;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Getter
+@RequiredArgsConstructor
 public enum AlbumGroup {
     ALBUM("album"),
     APPEARS_ON("appears_on"),
     COMPILATION("compilation"),
     SINGLE("single");
 
-    private static final Map<String, AlbumGroup> map = new HashMap<>();
+    private static final Map<String, AlbumGroup> MAP;
     public final String group;
 
-    AlbumGroup(String group) {
-        this.group = group;
-    }
-
     public static AlbumGroup keyOf(String type) {
-        return map.get(type);
-    }
-
-    public String getGroup() {
-        return this.group;
+        return MAP.get(type);
     }
 
     static {
-        AlbumGroup[] var0 = values();
-        int var1 = var0.length;
-
-        for (int var2 = 0; var2 < var1; ++var2) {
-            AlbumGroup albumGroup = var0[var2];
-            map.put(albumGroup.group, albumGroup);
-        }
+        MAP = Arrays.stream(values())
+                .collect(Collectors.toMap(x -> x.group, Function.identity()));
     }
 }

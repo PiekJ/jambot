@@ -9,6 +9,6 @@ public interface ArtistRepository {
         return new ArtistFinder();
     }
 
-    Artist save(Artist artist) throws ValidationException;
-    void delete(Artist artist) throws ValidationException;
+    Artist save(Artist artist) throws RuntimeException;
+    void delete(Artist artist) throws RuntimeException;
 }

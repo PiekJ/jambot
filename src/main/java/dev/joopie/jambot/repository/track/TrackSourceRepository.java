@@ -10,7 +10,7 @@ public interface TrackSourceRepository {
         return new TrackSourceFinder();
     }
 
-    TrackSource save(TrackSource trackSource) throws ValidationException;
-    void delete(TrackSource trackSource) throws ValidationException;
+    TrackSource save(TrackSource trackSource) throws RuntimeException;
+    void delete(TrackSource trackSource) throws RuntimeException;
 
 }

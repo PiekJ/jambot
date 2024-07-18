@@ -1,28 +1,28 @@
 package dev.joopie.jambot.util;
 
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class YouTubeLinkParser {
-    public static String extractYouTubeId(String url) {
-        // Regex patterns for different YouTube URL formats
-        String regex1 = "youtube\\.com/watch\\?v=([a-zA-Z0-9_-]+)";
-        String regex2 = "youtu\\.be/([a-zA-Z0-9_-]+)";
+    private static final String REGEX_1 = "youtube\\.com/watch\\?v=([a-zA-Z0-9_-]+)";
+    private static final String REGEX_2 = "youtu\\.be/([a-zA-Z0-9_-]+)";
+    private static final Pattern PATTERN_1 = Pattern.compile(REGEX_1);
+    private static final Pattern PATTERN_2 = Pattern.compile(REGEX_2);
+    public static Optional<String> extractYouTubeId(String url) {
 
-        Pattern pattern1 = Pattern.compile(regex1);
-        Pattern pattern2 = Pattern.compile(regex2);
 
-        Matcher matcher1 = pattern1.matcher(url);
-        Matcher matcher2 = pattern2.matcher(url);
+        Matcher matcher1 = PATTERN_1.matcher(url);
+        Matcher matcher2 = PATTERN_2.matcher(url);
 
         if (matcher1.find()) {
             // Extract the ID from youtube.com/watch?v=...
-            return matcher1.group(1);
+            return Optional.of(matcher1.group(1));
         } else if (matcher2.find()) {
             // Extract the ID from youtu.be/...
-            return matcher2.group(1);
+            return Optional.of(matcher2.group(1));
         }
-        return null;
+        return Optional.empty();
     }
 
     public static String parseIdToYouTubeWatchUrl(String videoId) {

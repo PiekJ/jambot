@@ -11,6 +11,6 @@ public interface TrackRepository {
         return new TrackFinder();
     }
 
-    Track save(Track track) throws ValidationException;
-    void delete(Track track) throws ValidationException;
+    Track save(Track track) throws RuntimeException;
+    void delete(Track track) throws RuntimeException;
 }

@@ -9,6 +9,6 @@ public interface AlbumRepository {
         return new AlbumFinder();
     }
 
-    Album save(Album album) throws ValidationException;
-    void delete(Album album) throws ValidationException;
+    Album save(Album album) throws RuntimeException;
+    void delete(Album album) throws RuntimeException;
 }

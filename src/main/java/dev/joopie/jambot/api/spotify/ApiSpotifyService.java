@@ -24,15 +24,14 @@ import java.util.regex.Pattern;
 @Service
 @RequiredArgsConstructor
 public class ApiSpotifyService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiSpotifyService.class);
     private static final Pattern SPOTIFY_URL_PATTERN = Pattern.compile("https?:\\/\\/(?:open\\.)?spotify.com\\/(user|episode|playlist|track)\\/(?:spotify\\/playlist\\/)?(\\w*)");
     private final SpotifyProperties properties;
     private SpotifyApi spotifyApi;
 
-    @Autowired
+    
     private final SpotifyAPIConverterService spotifyAPIConverterService;
 
-    @Autowired
+    
     private final TrackRepository trackRepository;
     private LocalDateTime tokenExpireDate;
 
@@ -93,7 +92,7 @@ public class ApiSpotifyService {
         try {
             searchResult = spotifyApi.searchTracks(searchQuery).build().execute().getItems();
         } catch (IOException | SpotifyWebApiException | ParseException e) {
-            LOGGER.error("Error while fetching the Spotify API");
+            log.error("Error while fetching the Spotify API");
         }
 
         if (searchResult == null || searchResult.length == 0) {

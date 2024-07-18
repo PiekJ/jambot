@@ -5,6 +5,6 @@ import dev.joopie.jambot.models.AlbumTrack;
 import javax.xml.bind.ValidationException;
 
 public interface AlbumTrackRepository {
-    AlbumTrack save(AlbumTrack albumTrack) throws ValidationException;;
-    void delete(AlbumTrack albumTrack) throws ValidationException;;
+    AlbumTrack save(AlbumTrack albumTrack) throws RuntimeException;;
+    void delete(AlbumTrack albumTrack) throws RuntimeException;;
 }

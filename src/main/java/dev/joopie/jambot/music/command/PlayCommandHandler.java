@@ -28,7 +28,6 @@ import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import org.apache.logging.log4j.util.Strings;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
@@ -46,19 +45,19 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
     private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
     public static final Pattern URL_PATTERN = Pattern.compile("^(http(|s)://.*)$");
 
-    @Autowired
+    
     private final GuildMusicService musicService;
 
-    @Autowired
+    
     private final ApiYouTubeService apiYouTubeService;
 
-    @Autowired
+    
     private final ApiSpotifyService apiSpotifyService;
 
-    @Autowired
+    
     private final TrackSourceService trackSourceService;
 
-    @Autowired
+    
     private final TrackService trackService;
 
     @Override
@@ -129,7 +128,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
 
         // Create and send the message with buttons
         WebhookMessageCreateAction<Message> action = event.getHook().sendMessage(
-                    "**Track added!**\n\n OK, we added the track to the queue! In order to improve our service we would like\n to ask you to rate our search result. Please let us know :thumbsup_tone3: or :thumbsdown_tone3: if we got\n the correct result for you.\n\n %s".formatted(parsedVideoId))
+                    "**Track added!**\n\n OK, we added the track to the queue! In order to improve our service we would like\n to ask you to rate our search result.\n\n Please let us know :thumbsup_tone3: or :thumbsdown_tone3: if we got the correct result for you.\n\n %s".formatted(parsedVideoId))
                 .addActionRow(
                         Button.success("accept", "Accept").withEmoji(Emoji.fromUnicode("U+1F44D U+1F3FD")),
                         Button.danger("reject", "Reject").withEmoji(Emoji.fromUnicode("U+1F44E U+1F3FD"))
