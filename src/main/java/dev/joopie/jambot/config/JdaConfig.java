@@ -23,7 +23,8 @@ public class JdaConfig {
         return JDABuilder.create(
                         properties.getToken(),
                         List.of(
-                                GatewayIntent.GUILD_VOICE_STATES))
+                                GatewayIntent.GUILD_VOICE_STATES,
+                                GatewayIntent.DIRECT_MESSAGES))
                 .disableCache(
                         CacheFlag.ACTIVITY,
                         CacheFlag.EMOJI,

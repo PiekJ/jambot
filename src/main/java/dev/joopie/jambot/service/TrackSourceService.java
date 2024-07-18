@@ -13,7 +13,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class TrackSourceService {
 
-    private TrackSourceRepository trackSourceRepository;
+    private final TrackSourceRepository trackSourceRepository;
 
 
     public Optional<Object> save(TrackSource trackSource) {
@@ -43,7 +43,7 @@ public class TrackSourceService {
     }
 
     public boolean isRejected(String youtubeId) {
-        TrackSource trackSource = trackSourceRepository.find().byYoutubeId(youtubeId);
+        TrackSource trackSource = trackSourceRepository.find().byRejectedYoutubeId(youtubeId);
         return trackSource != null && trackSource.isRejected();
     }
 

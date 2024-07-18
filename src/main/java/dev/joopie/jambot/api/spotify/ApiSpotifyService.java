@@ -12,6 +12,8 @@ import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -78,17 +80,19 @@ public class ApiSpotifyService {
         return Optional.empty();
     }
 
-    public Optional<Track> searchForTrack(String searchQuery) {
+    public Optional<Track> searchForTrack(String artistName, String trackName) {
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
-
+        final var searchQuery = String.format("%s - %s", artistName, trackName);
         try {
-            se.michaelthelin.spotify.model_objects.specification.Track[] searchResult =
-                    spotifyApi.searchTracks(searchQuery).build().execute().getItems();
+            List<se.michaelthelin.spotify.model_objects.specification.Track> searchResult =
+                    Arrays.stream(spotifyApi.searchTracks(searchQuery).build().execute().getItems())
+                            .filter(track -> Arrays.stream(track.getArtists())
+                                    .anyMatch(artist -> artist.getName().toLowerCase().contains(artistName.toLowerCase())))
+                            .toList();
 
-            return (searchResult == null || searchResult.length == 0) ?
-                    Optional.empty() : Optional.of(spotifyAPIConverterService.saveAPIResult(searchResult[0]));
+            return searchResult.isEmpty() ? Optional.empty() : Optional.of(spotifyAPIConverterService.saveAPIResult(searchResult.getFirst()));
 
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             log.error("Error while fetching the Spotify API", e);

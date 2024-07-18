@@ -1,17 +1,12 @@
 package dev.joopie.jambot.music.command;
 
-import dev.joopie.jambot.api.spotify.ApiSpotifyService;
-import dev.joopie.jambot.api.youtube.ApiYouTubeService;
 import dev.joopie.jambot.api.youtube.JambotYouTubeException;
 import dev.joopie.jambot.command.CommandHandler;
-import dev.joopie.jambot.model.Artist;
 import dev.joopie.jambot.model.Track;
-import dev.joopie.jambot.model.TrackSource;
 import dev.joopie.jambot.music.GuildMusicService;
 import dev.joopie.jambot.music.JambotMusicPlayerException;
 import dev.joopie.jambot.music.JambotMusicServiceException;
-import dev.joopie.jambot.service.TrackService;
-import dev.joopie.jambot.service.TrackSourceService;
+import dev.joopie.jambot.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -40,21 +35,12 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
     private static final String SPOTIFY_URL = "spotify";
     private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
     public static final Pattern URL_PATTERN = Pattern.compile("^(http(|s)://.*)$");
+    public static final int SECONDS_OFFSET = 15;
 
-    
     private final GuildMusicService musicService;
 
-    
-    private final ApiYouTubeService apiYouTubeService;
+    private final SearchService searchService;
 
-    
-    private final ApiSpotifyService apiSpotifyService;
-
-    
-    private final TrackSourceService trackSourceService;
-
-    
-    private final TrackService trackService;
 
     @Override
     public Command.Type type() {
@@ -63,11 +49,11 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
 
     @Override
     public CommandData registerCommand() {
-        return Commands.slash(COMMAND_NAME, "play a track url or search for one")
+        return Commands.slash(COMMAND_NAME, "Play a track url")
                 .addOption(
                         OptionType.STRING,
                         COMMAND_OPTION_INPUT_NAME,
-                        "YouTube, Soundcloud, Spotify url or search term",
+                        "YouTube, Soundcloud, Spotify url",
                         true);
     }
 
@@ -85,15 +71,16 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
                     .setEphemeral(true);
         }
 
-        event.deferReply().queue();
+
 
         try {
             final var input = inputOption.getAsString();
-            String videoId = Strings.EMPTY;
 
-            if (!URL_OR_ID_PATTERN.matcher(input).matches()) {
-                videoId = performSpotifyAndYoutubeSearch(input);
+            if (!URL_PATTERN.matcher(input).matches()) {
+                return event.reply("In order to use this command, a link must be provided. If you want to search for music please use our `/search` command")
+                        .setEphemeral(true);
             }
+            String videoId = Strings.EMPTY;
 
             if (input.contains(SPOTIFY_URL)) {
                 videoId = handleSpotifyLink(input);
@@ -132,42 +119,10 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         
     }
 
-    private String performYoutubeSearch(Track track) {
-        if (track.getTrackSource() == null) {
-            TrackSource trackSource = new TrackSource();
-            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(10), track.getDuration().plusSeconds(10), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
-            trackSource.setSpotifyId(track.getExternalId());
-            trackSource.setTrack(track);
-            trackSourceService.save(trackSource);
-            return trackSource.getYoutubeId();
-        } else if (track.getTrackSource().isRejected()) {
-            TrackSource trackSource = new TrackSource();
-            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(10), track.getDuration().plusSeconds(10), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
-            trackSource.setSpotifyId(track.getExternalId());
-            trackSource.setTrack(track);
-            trackSourceService.save(trackSource);
-            return trackSource.getYoutubeId();
-        }
-
-        return track.getTrackSource().getYoutubeId();
-    }
-
-    private String performSpotifyAndYoutubeSearch(String input) {
-        Optional<Track> track = apiSpotifyService.searchForTrack(input);
-
-        if (track.isPresent() && track.get().getTrackSource() != null && !track.get().getTrackSource().isRejected()) {
-            return track.get().getTrackSource().getYoutubeId();
-        } else if (track.isPresent()) {
-            return performYoutubeSearch(track.get());
-        } else {
-            return Strings.EMPTY;
-        }
-    }
-
     private String handleSpotifyLink(String input) {
         if (input.contains("track")) {
-            final Optional<Track> spotifyResult = apiSpotifyService.getTrack(input);
-            return spotifyResult.map(this::performYoutubeSearch).orElse(null);
+            final Optional<Track> spotifyResult = searchService.getTrack(input);
+            return spotifyResult.map(searchService::performYoutubeSearch).orElse(null);
         }
 
         return Strings.EMPTY;

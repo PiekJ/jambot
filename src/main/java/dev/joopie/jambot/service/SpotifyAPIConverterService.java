@@ -38,7 +38,7 @@ public class SpotifyAPIConverterService {
                 Album album = mapAndSaveAlbum(trackResult.getAlbum());
                 track = mapAndSaveTrack(trackResult, artists, album);
             } catch (RuntimeException e) {
-                log.error("Error while saving Spotify API results into our database");
+                log.error("Error while saving Spotify API results into our database", e);
             }
         } else {
             log.info("API result already found in our local database");
@@ -52,7 +52,7 @@ public class SpotifyAPIConverterService {
         if (dbTrack != null && dbTrack.getAlbum().contains(album)) {
             return dbTrack;
 
-        } else if (!dbTrack.getAlbum().contains(album)) {
+        } else if (dbTrack != null && !dbTrack.getAlbum().contains(album)) {
             AlbumTrack albumTrack = new AlbumTrack();
             albumTrack.setTrackNumber(trackresult.getTrackNumber());
             albumTrack.setTrackId(dbTrack.getId());

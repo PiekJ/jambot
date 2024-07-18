@@ -1,10 +1,10 @@
 package dev.joopie.jambot.model;
 
 import dev.joopie.jambot.model.base.BaseModel;
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.Entity;
 
 @Entity
 @Getter

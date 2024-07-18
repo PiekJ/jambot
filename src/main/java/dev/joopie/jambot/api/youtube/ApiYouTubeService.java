@@ -68,15 +68,15 @@ public class ApiYouTubeService {
                 .stream()
                 .map(SearchResponse.Item::getId)
                 .map(SearchResponse.Item.Id::getVideoId)
+                .filter(videoId -> {
+                    // Check if the video ID is not rejected
+                    return !trackSourceService.isRejected(videoId);
+                })
                 .toList();
     }
 
     private List<SearchResultDto> getFilteredVideos(List<String> videoIds, Duration minDuration, Duration maxDuration, List<String> artistNames) throws IOException {
-        List<String> nonRejectedVideoIds = videoIds.stream()
-                .filter(id -> !trackSourceService.isRejected(id))
-                .toList();
-
-        String url = String.format(VIDEO_DETAILS_URL, String.join(",", nonRejectedVideoIds), properties.getToken());
+        String url = String.format(VIDEO_DETAILS_URL, String.join(",", videoIds), properties.getToken());
         try (var client = HttpClients.createDefault();
              var response = client.execute(RequestBuilder.get(url).build())) {
 
@@ -85,10 +85,6 @@ public class ApiYouTubeService {
 
                 List<SearchResultDto> matchingChannels = items.stream()
                         .filter(item -> artistNames.stream().anyMatch(artist -> item.getSnippet().getChannelTitle().toLowerCase().contains(artist.toLowerCase())))
-                        .filter(item -> {
-                            Duration videoDuration = parseDuration(item.getContentDetails().getDuration());
-                            return videoDuration.compareTo(minDuration) >= 0 && videoDuration.compareTo(maxDuration) <= 0;
-                        })
                         .map(this::mapItemToSearchResult)
                         .toList();
 
