@@ -5,8 +5,8 @@ import dev.joopie.jambot.repository.base.BaseFinder;
 import io.ebean.DB;
 
 public final class TrackSourceFinder extends BaseFinder<TrackSource> {
-    private static String YOUTUBEID = "youtubeId";
-    private static String SPOTIFYID = "spotifyId";
+    private static final String YOUTUBEID = "youtubeId";
+    private static final String SPOTIFYID = "spotifyId";
 
     TrackSourceFinder() {
         super(TrackSource.class);

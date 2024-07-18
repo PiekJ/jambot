@@ -2,8 +2,6 @@ package dev.joopie.jambot.repository.track;
 
 import dev.joopie.jambot.models.TrackSource;
 
-import javax.xml.bind.ValidationException;
-
 public interface TrackSourceRepository {
 
     default TrackSourceFinder find() {
@@ -11,6 +9,7 @@ public interface TrackSourceRepository {
     }
 
     TrackSource save(TrackSource trackSource) throws RuntimeException;
+
     void delete(TrackSource trackSource) throws RuntimeException;
 
 }

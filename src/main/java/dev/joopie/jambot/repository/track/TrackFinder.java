@@ -12,6 +12,6 @@ public class TrackFinder extends BaseFinder<Track> {
     }
 
     public Track byExternalId(String externalId) {
-        return DB.find(Track.class).where().eq(EXTERNALID,externalId).findOne();
+        return DB.find(Track.class).where().eq(EXTERNALID, externalId).findOne();
     }
 }

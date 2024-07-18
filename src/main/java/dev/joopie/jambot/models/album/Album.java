@@ -6,7 +6,11 @@ import dev.joopie.jambot.models.base.BaseModel;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.persistence.*;
+import javax.persistence.Entity;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.OneToMany;
 import java.util.List;
 import java.util.Set;
 
@@ -24,9 +28,9 @@ public class Album extends BaseModel<Album> {
 
     @OneToMany
     @JoinTable(
-            name="album_artist",
-            joinColumns = @JoinColumn( name="album_id"),
-            inverseJoinColumns = @JoinColumn( name="artist_id")
+            name = "album_artist",
+            joinColumns = @JoinColumn(name = "album_id"),
+            inverseJoinColumns = @JoinColumn(name = "artist_id")
     )
     private List<Artist> artists;
 }

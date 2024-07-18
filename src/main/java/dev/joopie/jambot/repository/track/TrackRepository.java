@@ -1,10 +1,6 @@
 package dev.joopie.jambot.repository.track;
 
-import dev.joopie.jambot.models.Artist;
 import dev.joopie.jambot.models.Track;
-import dev.joopie.jambot.repository.artist.ArtistFinder;
-
-import javax.xml.bind.ValidationException;
 
 public interface TrackRepository {
     default TrackFinder find() {
@@ -12,5 +8,6 @@ public interface TrackRepository {
     }
 
     Track save(Track track) throws RuntimeException;
+
     void delete(Track track) throws RuntimeException;
 }

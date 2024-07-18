@@ -9,6 +9,7 @@ public class YouTubeLinkParser {
     private static final String REGEX_2 = "youtu\\.be/([a-zA-Z0-9_-]+)";
     private static final Pattern PATTERN_1 = Pattern.compile(REGEX_1);
     private static final Pattern PATTERN_2 = Pattern.compile(REGEX_2);
+
     public static Optional<String> extractYouTubeId(String url) {
 
 

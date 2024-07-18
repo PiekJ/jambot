@@ -22,7 +22,7 @@ public class SpotifyLinkParser {
         return Optional.empty();
     }
 
-   private static String removeSiParameter(String url) {
+    private static String removeSiParameter(String url) {
         // Remove the si parameter if present
         return url.replaceAll(SI_PARAMETER_REGEX, "");
     }

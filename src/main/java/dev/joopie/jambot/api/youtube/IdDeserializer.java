@@ -12,7 +12,7 @@ public class IdDeserializer extends JsonDeserializer<SearchResponse.Item.Id> {
 
     @Override
     public SearchResponse.Item.Id deserialize(JsonParser p, DeserializationContext ctxt)
-            throws IOException, JsonProcessingException {
+            throws IOException {
         JsonNode node = p.getCodec().readTree(p);
 
         SearchResponse.Item.Id id = new SearchResponse.Item.Id();

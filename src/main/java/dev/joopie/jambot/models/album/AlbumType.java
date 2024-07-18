@@ -11,12 +11,12 @@ public enum AlbumType {
     private static final Map<String, AlbumType> map = new HashMap();
     public final String type;
 
-    private AlbumType(String type) {
+    AlbumType(String type) {
         this.type = type;
     }
 
     public static AlbumType keyOf(String type) {
-        return (AlbumType)map.get(type);
+        return map.get(type);
     }
 
     public String getType() {
@@ -27,7 +27,7 @@ public enum AlbumType {
         AlbumType[] var0 = values();
         int var1 = var0.length;
 
-        for(int var2 = 0; var2 < var1; ++var2) {
+        for (int var2 = 0; var2 < var1; ++var2) {
             AlbumType albumType = var0[var2];
             map.put(albumType.type, albumType);
         }

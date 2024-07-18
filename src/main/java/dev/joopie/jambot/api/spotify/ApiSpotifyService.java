@@ -6,9 +6,6 @@ import dev.joopie.jambot.service.SpotifyAPIConverterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.core5.http.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
@@ -28,10 +25,10 @@ public class ApiSpotifyService {
     private final SpotifyProperties properties;
     private SpotifyApi spotifyApi;
 
-    
+
     private final SpotifyAPIConverterService spotifyAPIConverterService;
 
-    
+
     private final TrackRepository trackRepository;
     private LocalDateTime tokenExpireDate;
 
@@ -57,7 +54,7 @@ public class ApiSpotifyService {
     }
 
     public Optional<Track> getTrack(String link) {
-        Optional <Track> track = Optional.empty();
+        Optional<Track> track = Optional.empty();
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
@@ -102,7 +99,6 @@ public class ApiSpotifyService {
         return Optional.of(spotifyAPIConverterService.saveAPIResult(searchResult[0]));
 
     }
-
 
 
     private Optional<String> getSpotifyIdFromLink(String link) {
