@@ -13,6 +13,7 @@ import javax.persistence.*;
 public class TrackSource extends BaseModel<TrackSource> {
     private String youtubeId;
     private String spotifyId;
+    private boolean rejected;
 
     @OneToOne
     @JoinColumn(name = "track_id", referencedColumnName = "id")

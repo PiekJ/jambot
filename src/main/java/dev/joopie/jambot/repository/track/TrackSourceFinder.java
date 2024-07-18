@@ -13,10 +13,10 @@ public final class TrackSourceFinder extends BaseFinder<TrackSource> {
     }
 
     public TrackSource byYoutubeId(String youtubeId) {
-        return DB.find(TrackSource.class).where().eq(YOUTUBEID, youtubeId).findOne();
+        return DB.find(TrackSource.class).where().eq(YOUTUBEID, youtubeId).and().eq("rejected", false).findOne();
     }
 
     public TrackSource bySpotifyId(String spotifyId) {
-        return DB.find(TrackSource.class).where().eq(SPOTIFYID, spotifyId).findOne();
+        return DB.find(TrackSource.class).where().eq(SPOTIFYID, spotifyId).and().eq("rejected", false).findOne();
     }
 }

@@ -57,6 +57,18 @@
             <column name="track_id" type="bigint">
                 <constraints nullable="false"/>
             </column>
+            <column name="track_number" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
         </createTable>
 
         <createTable tableName="track">
@@ -176,9 +188,6 @@
             <dropTable tableName="track_artist"/>
             <dropTable tableName="artist"/>
         </rollback>
-    </changeSet>
-
-    <changeSet id="2" author="Carsten Flokstra">
         <createTable tableName="track_source">
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
@@ -190,6 +199,9 @@
                 <constraints nullable="false"/>
             </column>
             <column name="track_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rejected" type="tinyint" defaultValueBoolean="0">
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="datetime">

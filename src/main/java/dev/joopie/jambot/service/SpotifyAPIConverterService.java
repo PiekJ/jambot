@@ -1,11 +1,13 @@
 package dev.joopie.jambot.service;
 
+import dev.joopie.jambot.models.AlbumTrack;
 import dev.joopie.jambot.models.Artist;
 import dev.joopie.jambot.models.Track;
 import dev.joopie.jambot.models.album.Album;
 import dev.joopie.jambot.models.album.AlbumGroup;
 import dev.joopie.jambot.models.album.AlbumType;
 import dev.joopie.jambot.repository.album.AlbumRepository;
+import dev.joopie.jambot.repository.album.AlbumTrackRepository;
 import dev.joopie.jambot.repository.artist.ArtistRepository;
 import dev.joopie.jambot.repository.track.TrackRepository;
 import org.slf4j.Logger;
@@ -19,7 +21,6 @@ import javax.xml.bind.ValidationException;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 @Service
 public class SpotifyAPIConverterService {
@@ -31,15 +32,18 @@ public class SpotifyAPIConverterService {
     private AlbumRepository albumRepository;
 
     @Autowired
+    private AlbumTrackRepository albumTrackRepository;
+
+    @Autowired
     private TrackRepository trackRepository;
 
-    public Track saveAPIResult(se.michaelthelin.spotify.model_objects.specification.Track trackresult) {
-        Track track = trackRepository.find().byExternalId(trackresult.getId());
-        if (track == null) {
+    public Track saveAPIResult(se.michaelthelin.spotify.model_objects.specification.Track trackResult) {
+        Track track = null;
+        if (trackResult != null) {
             try {
-                List<Artist> artists = convertArtists(trackresult);
-                Album album = convertAlbum(trackresult, artists);
-                track = convertTrack(trackresult, artists, album);
+                List<Artist> artists = convertArtists(trackResult.getArtists());
+                Album album = convertAlbum(trackResult.getAlbum());
+                track = convertTrack(trackResult, artists, album);
             } catch (ValidationException e) {
                 LOGGER.error("Error while saving Spotify API results into our database");
             }
@@ -50,36 +54,55 @@ public class SpotifyAPIConverterService {
     }
 
     private Track convertTrack(se.michaelthelin.spotify.model_objects.specification.Track trackresult, List<Artist> artists, Album album) throws ValidationException {
-        Track track = new dev.joopie.jambot.models.Track();
-        track.setName(trackresult.getName());
-        track.setDuration(Duration.ofMillis(trackresult.getDurationMs()));
-        track.setArtists(artists);
-        track.setAlbum(Set.of(album));
-        track.setExternalId(trackresult.getId());
+        Track dbTrack = trackRepository.find().byExternalId(trackresult.getId());
 
-        return trackRepository.save(track);
+        if (dbTrack == null) {
+            Track track = new dev.joopie.jambot.models.Track();
+            track.setName(trackresult.getName());
+            track.setDuration(Duration.ofMillis(trackresult.getDurationMs()));
+            track.setArtists(artists);
+            track.setExternalId(trackresult.getId());
+            track = trackRepository.save(track);
+
+            AlbumTrack albumTrack = new AlbumTrack();
+            albumTrack.setTrackNumber(trackresult.getTrackNumber());
+            albumTrack.setTrackId(track.getId());
+            albumTrack.setAlbumId(album.getId());
+            albumTrackRepository.save(albumTrack);
+
+            return track;
+
+        } else if (!dbTrack.getAlbum().contains(album)) {
+
+            AlbumTrack albumTrack = new AlbumTrack();
+            albumTrack.setTrackNumber(trackresult.getTrackNumber());
+            albumTrack.setTrackId(dbTrack.getId());
+            albumTrack.setAlbumId(album.getId());
+
+            albumTrackRepository.save(albumTrack);
+        }
+        return dbTrack;
     }
 
-    private Album convertAlbum(se.michaelthelin.spotify.model_objects.specification.Track trackresult, List<Artist> artists) throws ValidationException {
-        AlbumSimplified albumResult = trackresult.getAlbum();
-        Album dbAlbum = albumRepository.find().byExternalId(trackresult.getAlbum().getId());
+    private Album convertAlbum(AlbumSimplified albumSimplified) throws ValidationException {
+        Album dbAlbum = albumRepository.find().byExternalId(albumSimplified.getId());
 
         if (dbAlbum == null) {
             Album album = new Album();
-            album.setName(albumResult.getName());
-            album.setArtists(artists);
-            album.setAlbumGroup(albumResult.getAlbumGroup() != null ? AlbumGroup.keyOf(albumResult.getAlbumGroup().group) : null);
-            album.setAlbumType(albumResult.getAlbumType() != null ? AlbumType.keyOf(albumResult.getAlbumType().type) : null);
-            album.setExternalId(albumResult.getId());
+            album.setName(albumSimplified.getName());
+            album.setArtists(convertArtists(albumSimplified.getArtists()));
+            album.setAlbumGroup(albumSimplified.getAlbumGroup() != null ? AlbumGroup.keyOf(albumSimplified.getAlbumGroup().group) : null);
+            album.setAlbumType(albumSimplified.getAlbumType() != null ? AlbumType.keyOf(albumSimplified.getAlbumType().type) : null);
+            album.setExternalId(albumSimplified.getId());
             return albumRepository.save(album);
         } else {
             return dbAlbum;
         }
     }
 
-    private List<Artist> convertArtists(se.michaelthelin.spotify.model_objects.specification.Track trackresult) throws ValidationException {
+    private List<Artist> convertArtists(ArtistSimplified[] artistSimplifieds) throws ValidationException {
         List<Artist> artistList = new ArrayList<>();
-        for (ArtistSimplified artistresult : trackresult.getArtists()) {
+        for (ArtistSimplified artistresult : artistSimplifieds) {
             Artist dbArtist = artistRepository.find().byExternalId(artistresult.getId());
             if (dbArtist == null) {
                 Artist artist = new Artist();

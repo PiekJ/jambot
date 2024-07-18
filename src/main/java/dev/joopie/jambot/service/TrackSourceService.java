@@ -37,8 +37,14 @@ public class TrackSourceService {
         return trackSourceRepository.find().byYoutubeId(youtubeId);
     }
 
+
     public TrackSource findBySpotifyId(String spotifyId) {
         return trackSourceRepository.find().bySpotifyId(spotifyId);
+    }
+
+    public boolean isRejected(String youtubeId) {
+        TrackSource trackSource = trackSourceRepository.find().byYoutubeId(youtubeId);
+        return trackSource != null && trackSource.isRejected();
     }
 
 }

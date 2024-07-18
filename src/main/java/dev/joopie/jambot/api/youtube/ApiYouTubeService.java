@@ -1,12 +1,14 @@
 package dev.joopie.jambot.api.youtube;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.joopie.jambot.service.TrackSourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.RequestBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -36,6 +38,8 @@ public class ApiYouTubeService {
     private final YouTubeProperties properties;
     private final ObjectMapper objectMapper;
 
+    @Autowired
+    private final TrackSourceService trackSourceService;
     public SearchResultDto searchForSong(final String input, final Duration minDuration, final Duration maxDuration, final List<String> artistNames) {
         String encodedInput = URLEncoder.encode(input, StandardCharsets.UTF_8);
         String url = String.format(SEARCH_URL, encodedInput, properties.getToken());
@@ -71,8 +75,11 @@ public class ApiYouTubeService {
     }
 
     private List<SearchResultDto> getFilteredVideos(List<String> videoIds, Duration minDuration, Duration maxDuration, List<String> artistNames) throws IOException {
-        String url = String.format(VIDEO_DETAILS_URL, String.join(",", videoIds), properties.getToken());
+        List<String> nonRejectedVideoIds = videoIds.stream()
+                .filter(id -> !trackSourceService.isRejected(id))
+                .collect(Collectors.toList());
 
+        String url = String.format(VIDEO_DETAILS_URL, String.join(",", nonRejectedVideoIds), properties.getToken());
         try (var client = HttpClients.createDefault();
              var response = client.execute(RequestBuilder.get(url).build())) {
 

@@ -1,6 +1,8 @@
 package dev.joopie.jambot.models.base;
 
 import io.ebean.Model;
+import io.ebean.annotation.WhenCreated;
+import io.ebean.annotation.WhenModified;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,25 +18,16 @@ public abstract class BaseModel<T> extends Model {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
+    @WhenCreated
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @WhenModified
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt = LocalDateTime.now();
 
     @Version
     private int version;
-
-    @PrePersist
-    protected void prePersist() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    @PreUpdate
-    protected void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
-    }
 
     public boolean validateSave() {
         return true;

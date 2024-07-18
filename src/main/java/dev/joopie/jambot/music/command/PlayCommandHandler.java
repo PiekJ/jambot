@@ -12,18 +12,19 @@ import dev.joopie.jambot.music.JambotMusicPlayerException;
 import dev.joopie.jambot.music.JambotMusicServiceException;
 import dev.joopie.jambot.service.TrackService;
 import dev.joopie.jambot.service.TrackSourceService;
-import dev.joopie.jambot.util.SpotifyLinkParser;
 import dev.joopie.jambot.util.YouTubeLinkParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import org.apache.logging.log4j.util.Strings;
@@ -38,7 +39,7 @@ import java.util.stream.Collectors;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class PlayCommandHandler implements CommandHandler {
+public class PlayCommandHandler extends ListenerAdapter implements CommandHandler {
     private static final String COMMAND_NAME = "play";
     private static final String COMMAND_OPTION_INPUT_NAME = "input";
     private static final String SPOTIFY_URL = "spotify";
@@ -59,7 +60,6 @@ public class PlayCommandHandler implements CommandHandler {
 
     @Autowired
     private final TrackService trackService;
-
 
     @Override
     public Command.Type type() {
@@ -97,7 +97,7 @@ public class PlayCommandHandler implements CommandHandler {
             String videoId = Strings.EMPTY;
 
             if (!URL_OR_ID_PATTERN.matcher(input).matches()) {
-               videoId = performSpotifyAndYoutubeSearch(input);;
+                videoId = performSpotifyAndYoutubeSearch(input);
             }
 
             if (input.contains(SPOTIFY_URL)) {
@@ -109,6 +109,7 @@ public class PlayCommandHandler implements CommandHandler {
             if (Strings.isEmpty(videoId)) {
                 return event.getHook().sendMessage("Unfortunately we did not find any results!");
             }
+
             return handlePlay(event, videoId);
 
         } catch (JambotMusicServiceException | JambotMusicPlayerException | JambotYouTubeException exception) {
@@ -117,9 +118,8 @@ public class PlayCommandHandler implements CommandHandler {
         }
     }
 
-    public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, String videoId) {
+    public RestAction<?> handlePlay(CommandInteraction event, String videoId) {
         musicService.play(event.getMember(), videoId);
-
         String parsedVideoId;
         if (URL_PATTERN.matcher(videoId).matches()) {
             parsedVideoId = videoId;
@@ -127,49 +127,53 @@ public class PlayCommandHandler implements CommandHandler {
             parsedVideoId = YouTubeLinkParser.parseIdToYouTubeWatchUrl(videoId);
         }
 
-        WebhookMessageCreateAction<Message> action = event.getHook()
-                .sendMessage("OK, we added the track to the queue! %s. Please let us know ✅ or ❌ if we got the correct result for you.".formatted(parsedVideoId));
-        action.queue(message -> {
-            message.addReaction(Emoji.fromUnicode("U+2705")).queue();
-            message.addReaction(Emoji.fromUnicode("U+274C")).queue();
-        });
+        // Create and send the message with buttons
+        WebhookMessageCreateAction<Message> action = event.getHook().sendMessage(
+                    "**Track added!**\n\n OK, we added the track to the queue! In order to improve our service we would like\n to ask you to rate our search result. Please let us know :thumbsup_tone3: or :thumbsdown_tone3: if we got\n the correct result for you.\n\n %s".formatted(parsedVideoId))
+                .addActionRow(
+                        Button.success("accept", "Accept").withEmoji(Emoji.fromUnicode("U+1F44D U+1F3FD")),
+                        Button.danger("reject", "Reject").withEmoji(Emoji.fromUnicode("U+1F44E U+1F3FD"))
+                );
+
         return action;
     }
 
     private String performYoutubeSearch(Track track) {
+        if (track.getTrackSource() == null) {
             TrackSource trackSource = new TrackSource();
             trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(10), track.getDuration().plusSeconds(10), track.getArtists().stream().map(Artist::getName).collect(Collectors.toList())).getVideoId());
             trackSource.setSpotifyId(track.getExternalId());
             trackSource.setTrack(track);
             trackSourceService.save(trackSource);
             return trackSource.getYoutubeId();
+        } else if (track.getTrackSource().isRejected()) {
+            TrackSource trackSource = new TrackSource();
+            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(10), track.getDuration().plusSeconds(10), track.getArtists().stream().map(Artist::getName).collect(Collectors.toList())).getVideoId());
+            trackSource.setSpotifyId(track.getExternalId());
+            trackSource.setTrack(track);
+            trackSourceService.save(trackSource);
+            return trackSource.getYoutubeId();
+        }
+
+        return track.getTrackSource().getYoutubeId();
     }
 
     private String performSpotifyAndYoutubeSearch(String input) {
         Optional<Track> track = apiSpotifyService.searchForTrack(input);
 
-        if (track.isPresent() && track.get().getTrackSource() != null) {
+        if (track.isPresent() && track.get().getTrackSource() != null && !track.get().getTrackSource().isRejected()) {
             return track.get().getTrackSource().getYoutubeId();
         } else if (track.isPresent()) {
-           return performYoutubeSearch(track.get());
+            return performYoutubeSearch(track.get());
         } else {
             return Strings.EMPTY;
         }
     }
 
     private String handleSpotifyLink(String input) {
-        // First check if we have records in the DB
-        Track track = trackService.findByExternalId(SpotifyLinkParser.extractSpotifyId(input));
-
-        if (track != null && track.getTrackSource() != null && track.getTrackSource().getYoutubeId() != null) {
-            return track.getTrackSource().getYoutubeId();
-        }
-
         if (input.contains("track")) {
-
             final Optional<Track> spotifyResult = apiSpotifyService.getTrack(input);
             return spotifyResult.map(this::performYoutubeSearch).orElse(null);
-
         }
 
         return Strings.EMPTY;

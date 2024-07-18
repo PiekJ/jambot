@@ -90,7 +90,6 @@ public class ApiSpotifyService {
             initSpotifyAccessToken();
         }
 
-
         try {
             searchResult = spotifyApi.searchTracks(searchQuery).build().execute().getItems();
         } catch (IOException | SpotifyWebApiException | ParseException e) {
@@ -101,13 +100,8 @@ public class ApiSpotifyService {
             return Optional.empty();
         }
 
-        Track dbTrack = trackRepository.find().byExternalId(searchResult[0].getId());
+        return Optional.of(spotifyAPIConverterService.saveAPIResult(searchResult[0]));
 
-        if (dbTrack == null) {
-            return Optional.of(spotifyAPIConverterService.saveAPIResult(searchResult[0]));
-        } else {
-            return Optional.of(dbTrack);
-        }
     }
 
 
