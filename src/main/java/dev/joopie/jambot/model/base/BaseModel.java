@@ -1,4 +1,4 @@
-package dev.joopie.jambot.models.base;
+package dev.joopie.jambot.model.base;
 
 import io.ebean.Model;
 import io.ebean.annotation.WhenCreated;
@@ -17,7 +17,7 @@ import java.time.LocalDateTime;
 @MappedSuperclass
 @Getter
 @Setter
-public abstract class BaseModel<T> extends Model {
+public abstract class BaseModel extends Model {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

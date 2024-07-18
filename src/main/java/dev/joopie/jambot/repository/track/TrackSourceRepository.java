@@ -1,6 +1,7 @@
 package dev.joopie.jambot.repository.track;
 
-import dev.joopie.jambot.models.TrackSource;
+import dev.joopie.jambot.exception.ValidationException;
+import dev.joopie.jambot.model.TrackSource;
 
 public interface TrackSourceRepository {
 
@@ -8,8 +9,8 @@ public interface TrackSourceRepository {
         return new TrackSourceFinder();
     }
 
-    TrackSource save(TrackSource trackSource) throws RuntimeException;
+    TrackSource save(TrackSource trackSource) throws ValidationException;
 
-    void delete(TrackSource trackSource) throws RuntimeException;
+    void delete(TrackSource trackSource) throws ValidationException;
 
 }

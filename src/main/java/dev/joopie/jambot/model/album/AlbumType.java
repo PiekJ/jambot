@@ -1,4 +1,4 @@
-package dev.joopie.jambot.models.album;
+package dev.joopie.jambot.model.album;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,7 +8,7 @@ public enum AlbumType {
     COMPILATION("compilation"),
     SINGLE("single");
 
-    private static final Map<String, AlbumType> map = new HashMap();
+    private static final Map<String, AlbumType> map = new HashMap<>();
     public final String type;
 
     AlbumType(String type) {

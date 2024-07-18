@@ -21,8 +21,8 @@ public class BaseFinder<T> {
         return Optional.ofNullable(DB.find(type, objectId));
     }
 
-    public List<T> byIds(long... objectIds) {
-        return DB.find(type).where().idIn(objectIds).findList();
+    public List<T> byIds(Long[] objectIds) {
+        return DB.find(type).where().idIn((Object[]) objectIds).findList();
     }
 
     public List<T> all() {

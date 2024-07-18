@@ -1,8 +1,8 @@
-package dev.joopie.jambot.models.album;
+package dev.joopie.jambot.model.album;
 
-import dev.joopie.jambot.models.Artist;
-import dev.joopie.jambot.models.Track;
-import dev.joopie.jambot.models.base.BaseModel;
+import dev.joopie.jambot.model.Artist;
+import dev.joopie.jambot.model.Track;
+import dev.joopie.jambot.model.base.BaseModel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,7 +17,10 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-public class Album extends BaseModel<Album> {
+public class Album extends BaseModel {
+    public static final String NAME = "name";
+    public static final String EXTERNALID = "external_id";
+
     private String name;
     private AlbumGroup albumGroup;
     private AlbumType albumType;

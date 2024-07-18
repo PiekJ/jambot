@@ -144,7 +144,7 @@ public class GuildMusicService {
                         .duration(x.getDuration())
                         .position(x.getPosition())
                         .build())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public void shuffleQueuedAudioTracks(final Member member) {

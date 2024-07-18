@@ -1,4 +1,4 @@
-package dev.joopie.jambot.models.album;
+package dev.joopie.jambot.model.album;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

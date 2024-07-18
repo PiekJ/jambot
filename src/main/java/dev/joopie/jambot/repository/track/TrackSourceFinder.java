@@ -1,12 +1,14 @@
 package dev.joopie.jambot.repository.track;
 
-import dev.joopie.jambot.models.TrackSource;
+import dev.joopie.jambot.model.TrackSource;
 import dev.joopie.jambot.repository.base.BaseFinder;
 import io.ebean.DB;
 
+import static dev.joopie.jambot.model.TrackSource.SPOTIFYID;
+import static dev.joopie.jambot.model.TrackSource.YOUTUBEID;
+
 public final class TrackSourceFinder extends BaseFinder<TrackSource> {
-    private static final String YOUTUBEID = "youtubeId";
-    private static final String SPOTIFYID = "spotifyId";
+
 
     TrackSourceFinder() {
         super(TrackSource.class);

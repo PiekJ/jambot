@@ -1,6 +1,6 @@
 package dev.joopie.jambot.api.spotify;
 
-import dev.joopie.jambot.models.Track;
+import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.repository.track.TrackRepository;
 import dev.joopie.jambot.service.SpotifyAPIConverterService;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,6 @@ import org.apache.hc.core5.http.ParseException;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -43,18 +42,18 @@ public class ApiSpotifyService {
                 .build();
 
         try {
-            ClientCredentials clientCredentials = clientCredentialsRequest.execute();
+            final var clientCredentials = clientCredentialsRequest.execute();
             spotifyApi.setAccessToken(clientCredentials.getAccessToken());
             tokenExpireDate = LocalDateTime.now().plusSeconds(clientCredentials.getExpiresIn());
 
             log.debug("Expires in: {}", clientCredentials.getExpiresIn());
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
+        } catch (final IOException | SpotifyWebApiException | ParseException e) {
             log.error(e.getMessage(), e);
         }
     }
 
+
     public Optional<Track> getTrack(String link) {
-        Optional<Track> track = Optional.empty();
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
@@ -69,9 +68,8 @@ public class ApiSpotifyService {
             final var apiTrack = getTrackRequest.execute();
 
             if (apiTrack != null) {
-                track = Optional.of(spotifyAPIConverterService.saveAPIResult(apiTrack));
+               return Optional.of(spotifyAPIConverterService.saveAPIResult(apiTrack));
             }
-            return track;
 
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             log.error(e.getMessage(), e);
@@ -81,35 +79,32 @@ public class ApiSpotifyService {
     }
 
     public Optional<Track> searchForTrack(String searchQuery) {
-        se.michaelthelin.spotify.model_objects.specification.Track[] searchResult = new se.michaelthelin.spotify.model_objects.specification.Track[0];
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
 
         try {
-            searchResult = spotifyApi.searchTracks(searchQuery).build().execute().getItems();
-        } catch (IOException | SpotifyWebApiException | ParseException e) {
-            log.error("Error while fetching the Spotify API");
-        }
+            se.michaelthelin.spotify.model_objects.specification.Track[] searchResult =
+                    spotifyApi.searchTracks(searchQuery).build().execute().getItems();
 
-        if (searchResult == null || searchResult.length == 0) {
+            return (searchResult == null || searchResult.length == 0) ?
+                    Optional.empty() : Optional.of(spotifyAPIConverterService.saveAPIResult(searchResult[0]));
+
+        } catch (IOException | SpotifyWebApiException | ParseException e) {
+            log.error("Error while fetching the Spotify API", e);
             return Optional.empty();
         }
-
-        return Optional.of(spotifyAPIConverterService.saveAPIResult(searchResult[0]));
-
     }
 
 
-    private Optional<String> getSpotifyIdFromLink(String link) {
-        final var matcher = SPOTIFY_URL_PATTERN.matcher(link);
 
-        if (matcher.find()) {
-            return Optional.of(matcher.group(2));
-        } else {
-            log.debug("No ID found in the link.");
-            return Optional.empty();
-        }
+    private Optional<String> getSpotifyIdFromLink(String link) {
+        return Optional.of(SPOTIFY_URL_PATTERN.matcher(link))
+                .flatMap(matcher -> matcher.find() ? Optional.of(matcher.group(2)) : Optional.empty())
+                .or(() -> {
+                    log.debug("No ID found in the link.");
+                    return Optional.empty();
+                });
     }
 
     private boolean isAccessTokenExpired() {

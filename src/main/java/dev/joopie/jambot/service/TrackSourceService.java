@@ -1,6 +1,6 @@
 package dev.joopie.jambot.service;
 
-import dev.joopie.jambot.models.TrackSource;
+import dev.joopie.jambot.model.TrackSource;
 import dev.joopie.jambot.repository.track.TrackSourceRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

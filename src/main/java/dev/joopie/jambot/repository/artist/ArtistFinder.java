@@ -1,15 +1,15 @@
 package dev.joopie.jambot.repository.artist;
 
-import dev.joopie.jambot.models.Artist;
+import dev.joopie.jambot.model.Artist;
 import dev.joopie.jambot.repository.base.BaseFinder;
 import io.ebean.DB;
 
 import java.util.List;
 
-public class ArtistFinder extends BaseFinder<Artist> {
-    private static final String NAME = "name";
-    private static final String EXTERNALID = "external_id";
+import static dev.joopie.jambot.model.Artist.EXTERNALID;
+import static dev.joopie.jambot.model.Artist.NAME;
 
+public class ArtistFinder extends BaseFinder<Artist> {
     ArtistFinder() {
         super(Artist.class);
     }

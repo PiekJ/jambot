@@ -4,18 +4,16 @@ import dev.joopie.jambot.api.spotify.ApiSpotifyService;
 import dev.joopie.jambot.api.youtube.ApiYouTubeService;
 import dev.joopie.jambot.api.youtube.JambotYouTubeException;
 import dev.joopie.jambot.command.CommandHandler;
-import dev.joopie.jambot.models.Artist;
-import dev.joopie.jambot.models.Track;
-import dev.joopie.jambot.models.TrackSource;
+import dev.joopie.jambot.model.Artist;
+import dev.joopie.jambot.model.Track;
+import dev.joopie.jambot.model.TrackSource;
 import dev.joopie.jambot.music.GuildMusicService;
 import dev.joopie.jambot.music.JambotMusicPlayerException;
 import dev.joopie.jambot.music.JambotMusicServiceException;
 import dev.joopie.jambot.service.TrackService;
 import dev.joopie.jambot.service.TrackSourceService;
-import dev.joopie.jambot.util.YouTubeLinkParser;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -26,14 +24,12 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.RestAction;
-import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
 
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -123,31 +119,30 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         if (URL_PATTERN.matcher(videoId).matches()) {
             parsedVideoId = videoId;
         } else {
-            parsedVideoId = YouTubeLinkParser.parseIdToYouTubeWatchUrl(videoId);
+            parsedVideoId = parseIdToYouTubeWatchUrl(videoId);
         }
 
         // Create and send the message with buttons
-        WebhookMessageCreateAction<Message> action = event.getHook().sendMessage(
-                    "**Track added!**\n\n OK, we added the track to the queue! In order to improve our service we would like\n to ask you to rate our search result.\n\n Please let us know :thumbsup_tone3: or :thumbsdown_tone3: if we got the correct result for you.\n\n %s".formatted(parsedVideoId))
+        return event.getHook().sendMessage(
+                    "**Track added!**%n%n OK, we added the track to the queue! In order to improve our service we would like%n to ask you to rate our search result.%n%n Please let us know :thumbsup_tone3: or :thumbsdown_tone3: if we got the correct result for you.%n%n %s".formatted(parsedVideoId))
                 .addActionRow(
                         Button.success("accept", "Accept").withEmoji(Emoji.fromUnicode("U+1F44D U+1F3FD")),
                         Button.danger("reject", "Reject").withEmoji(Emoji.fromUnicode("U+1F44E U+1F3FD"))
                 );
-
-        return action;
+        
     }
 
     private String performYoutubeSearch(Track track) {
         if (track.getTrackSource() == null) {
             TrackSource trackSource = new TrackSource();
-            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(10), track.getDuration().plusSeconds(10), track.getArtists().stream().map(Artist::getName).collect(Collectors.toList())).getVideoId());
+            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(10), track.getDuration().plusSeconds(10), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
             trackSource.setSpotifyId(track.getExternalId());
             trackSource.setTrack(track);
             trackSourceService.save(trackSource);
             return trackSource.getYoutubeId();
         } else if (track.getTrackSource().isRejected()) {
             TrackSource trackSource = new TrackSource();
-            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(10), track.getDuration().plusSeconds(10), track.getArtists().stream().map(Artist::getName).collect(Collectors.toList())).getVideoId());
+            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(10), track.getDuration().plusSeconds(10), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
             trackSource.setSpotifyId(track.getExternalId());
             trackSource.setTrack(track);
             trackSourceService.save(trackSource);
@@ -176,5 +171,9 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         }
 
         return Strings.EMPTY;
+    }
+
+    private static String parseIdToYouTubeWatchUrl(String videoId) {
+        return "https://www.youtube.com/watch?v=" + videoId;
     }
 }

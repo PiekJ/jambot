@@ -1,16 +1,17 @@
 package dev.joopie.jambot.repository.base;
 
-import dev.joopie.jambot.models.base.BaseModel;
+import dev.joopie.jambot.model.base.BaseModel;
+import dev.joopie.jambot.exception.ValidationException;
 import io.ebean.DB;
 
 import java.util.Collection;
 import java.util.List;
 
-public abstract class BaseRepository<T extends BaseModel<?>> {
+public abstract class BaseRepository<T extends BaseModel> {
 
     public static final String VALIDATION_FAILED_FOR = "Validation failed for: ";
 
-    public T save(T entity) throws RuntimeException {
+    public T save(T entity) throws ValidationException {
         if (!entity.validateSave()) {
             throw new RuntimeException(VALIDATION_FAILED_FOR + entity.getClass());
         }
@@ -20,7 +21,7 @@ public abstract class BaseRepository<T extends BaseModel<?>> {
     }
 
 
-    public T update(T entity) throws RuntimeException {
+    public T update(T entity) throws ValidationException {
         if (!entity.validateSave()) {
             throw new RuntimeException(VALIDATION_FAILED_FOR + entity.getClass());
         }
@@ -30,7 +31,7 @@ public abstract class BaseRepository<T extends BaseModel<?>> {
     }
 
 
-    public List<T> saveAll(final List<T> entities) throws RuntimeException {
+    public List<T> saveAll(final List<T> entities) throws ValidationException {
         for (T entity : entities) {
             if (!entity.validateSave()) {
                 throw new RuntimeException(VALIDATION_FAILED_FOR + entity.getClass());
@@ -41,7 +42,7 @@ public abstract class BaseRepository<T extends BaseModel<?>> {
     }
 
 
-    public void delete(T entity) throws RuntimeException {
+    public void delete(T entity) throws ValidationException {
         if (!entity.validateDelete()) {
             throw new RuntimeException(VALIDATION_FAILED_FOR + entity.getClass());
         }
@@ -49,7 +50,7 @@ public abstract class BaseRepository<T extends BaseModel<?>> {
     }
 
 
-    public void deleteAll(final Collection<T> entities) throws RuntimeException {
+    public void deleteAll(final Collection<T> entities) throws ValidationException {
         for (T entity : entities) {
             if (!entity.validateSave()) {
                 throw new RuntimeException(VALIDATION_FAILED_FOR + entity.getClass());

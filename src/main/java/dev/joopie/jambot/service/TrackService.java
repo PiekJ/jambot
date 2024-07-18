@@ -1,6 +1,6 @@
 package dev.joopie.jambot.service;
 
-import dev.joopie.jambot.models.Track;
+import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.repository.track.TrackRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

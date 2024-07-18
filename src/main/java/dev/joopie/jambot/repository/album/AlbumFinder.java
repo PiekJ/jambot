@@ -1,14 +1,15 @@
 package dev.joopie.jambot.repository.album;
 
-import dev.joopie.jambot.models.album.Album;
+import dev.joopie.jambot.model.album.Album;
 import dev.joopie.jambot.repository.base.BaseFinder;
 import io.ebean.DB;
 
 import java.util.List;
 
+import static dev.joopie.jambot.model.album.Album.EXTERNALID;
+import static dev.joopie.jambot.model.album.Album.NAME;
+
 public class AlbumFinder extends BaseFinder<Album> {
-    private static final String NAME = "name";
-    private static final String EXTERNALID = "external_id";
 
     AlbumFinder() {
         super(Album.class);

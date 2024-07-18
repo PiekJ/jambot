@@ -1,15 +1,16 @@
 package dev.joopie.jambot.service;
 
-import dev.joopie.jambot.models.AlbumTrack;
-import dev.joopie.jambot.models.Artist;
-import dev.joopie.jambot.models.Track;
-import dev.joopie.jambot.models.album.Album;
-import dev.joopie.jambot.models.album.AlbumGroup;
-import dev.joopie.jambot.models.album.AlbumType;
+import dev.joopie.jambot.model.AlbumTrack;
+import dev.joopie.jambot.model.Artist;
+import dev.joopie.jambot.model.Track;
+import dev.joopie.jambot.model.album.Album;
+import dev.joopie.jambot.model.album.AlbumGroup;
+import dev.joopie.jambot.model.album.AlbumType;
 import dev.joopie.jambot.repository.album.AlbumRepository;
 import dev.joopie.jambot.repository.album.AlbumTrackRepository;
 import dev.joopie.jambot.repository.artist.ArtistRepository;
 import dev.joopie.jambot.repository.track.TrackRepository;
+import dev.joopie.jambot.exception.ValidationException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -45,7 +46,7 @@ public class SpotifyAPIConverterService {
         return track;
     }
 
-    private Track mapAndSaveTrack(se.michaelthelin.spotify.model_objects.specification.Track trackresult, List<Artist> artists, Album album) throws RuntimeException {
+    private Track mapAndSaveTrack(se.michaelthelin.spotify.model_objects.specification.Track trackresult, List<Artist> artists, Album album) throws ValidationException {
         Track dbTrack = trackRepository.find().byExternalId(trackresult.getId());
 
         if (dbTrack != null && dbTrack.getAlbum().contains(album)) {
@@ -60,7 +61,7 @@ public class SpotifyAPIConverterService {
             albumTrackRepository.save(albumTrack);
             return dbTrack;
         } else {
-            Track track = new dev.joopie.jambot.models.Track();
+            Track track = new dev.joopie.jambot.model.Track();
             track.setName(trackresult.getName());
             track.setDuration(Duration.ofMillis(trackresult.getDurationMs()));
             track.setArtists(artists);
@@ -78,7 +79,7 @@ public class SpotifyAPIConverterService {
 
     }
 
-    private Album mapAndSaveAlbum(AlbumSimplified albumSimplified) throws RuntimeException {
+    private Album mapAndSaveAlbum(AlbumSimplified albumSimplified) throws ValidationException {
         Album dbAlbum = albumRepository.find().byExternalId(albumSimplified.getId());
 
         if (dbAlbum != null) {
@@ -94,7 +95,7 @@ public class SpotifyAPIConverterService {
         }
     }
 
-    private List<Artist> mapAndSaveArtists(ArtistSimplified[] artistSimplifieds) throws RuntimeException {
+    private List<Artist> mapAndSaveArtists(ArtistSimplified[] artistSimplifieds) throws ValidationException {
         List<Artist> artistList = new ArrayList<>();
         for (ArtistSimplified artistresult : artistSimplifieds) {
             Artist dbArtist = artistRepository.find().byExternalId(artistresult.getId());

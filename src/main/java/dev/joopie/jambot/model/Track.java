@@ -1,7 +1,7 @@
-package dev.joopie.jambot.models;
+package dev.joopie.jambot.model;
 
-import dev.joopie.jambot.models.album.Album;
-import dev.joopie.jambot.models.base.BaseModel;
+import dev.joopie.jambot.model.album.Album;
+import dev.joopie.jambot.model.base.BaseModel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
 @Entity
 @Getter
 @Setter
-public class Track extends BaseModel<Track> {
+public class Track extends BaseModel {
+    public static final String EXTERNALID = "external_id";
 
     @OneToMany
     @JoinTable(
@@ -45,9 +46,11 @@ public class Track extends BaseModel<Track> {
     private TrackSource trackSource;
 
     public String getFormattedTrack() {
-        var artists = getArtists().stream()
-                .map(Artist::getName)
-                .collect(Collectors.joining(","));
-        return "%s-%s".formatted(artists, getName());
+        return String.format("%s-%s",
+                getArtists().stream()
+                        .map(Artist::getName)
+                        .collect(Collectors.joining(",")),
+                getName());
+
     }
 }

@@ -27,7 +27,7 @@ public class EbeanConfig {
         config.setDdlRun(false);
 
         // Specify the packages to search for entities
-        config.addPackage("dev.joopie.jambot.models");
+        config.addPackage("dev.joopie.jambot.model");
 
         return DatabaseFactory.create(config);
     }

@@ -1,11 +1,12 @@
 package dev.joopie.jambot.repository.track;
 
-import dev.joopie.jambot.models.Track;
+import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.repository.base.BaseFinder;
 import io.ebean.DB;
 
+import static dev.joopie.jambot.model.Track.EXTERNALID;
+
 public class TrackFinder extends BaseFinder<Track> {
-    private static final String EXTERNALID = "external_id";
 
     TrackFinder() {
         super(Track.class);

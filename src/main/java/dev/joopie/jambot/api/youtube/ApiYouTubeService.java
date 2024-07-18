@@ -20,7 +20,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.zip.GZIPInputStream;
 
 @Slf4j
@@ -28,10 +27,10 @@ import java.util.zip.GZIPInputStream;
 @RequiredArgsConstructor
 public class ApiYouTubeService {
 
-    private final static String SEARCH_URL = "https://youtube.googleapis.com/youtube/v3/search"
+    private static final String SEARCH_URL = "https://youtube.googleapis.com/youtube/v3/search"
             + "?part=id%%2Csnippet&maxResults=10&order=relevance&q=%s&regionCode=nl&topicId=%%2Fm%%2F04rlf"
             + "&type=video&videoDefinition=high&videoCategoryId=10&key=%s";
-    private final static String VIDEO_DETAILS_URL = "https://youtube.googleapis.com/youtube/v3/videos"
+    private static final String VIDEO_DETAILS_URL = "https://youtube.googleapis.com/youtube/v3/videos"
             + "?part=contentDetails,snippet&id=%s&key=%s";
 
     private final YouTubeProperties properties;
@@ -69,13 +68,13 @@ public class ApiYouTubeService {
                 .stream()
                 .map(SearchResponse.Item::getId)
                 .map(SearchResponse.Item.Id::getVideoId)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     private List<SearchResultDto> getFilteredVideos(List<String> videoIds, Duration minDuration, Duration maxDuration, List<String> artistNames) throws IOException {
         List<String> nonRejectedVideoIds = videoIds.stream()
                 .filter(id -> !trackSourceService.isRejected(id))
-                .collect(Collectors.toList());
+                .toList();
 
         String url = String.format(VIDEO_DETAILS_URL, String.join(",", nonRejectedVideoIds), properties.getToken());
         try (var client = HttpClients.createDefault();
@@ -91,7 +90,7 @@ public class ApiYouTubeService {
                             return videoDuration.compareTo(minDuration) >= 0 && videoDuration.compareTo(maxDuration) <= 0;
                         })
                         .map(this::mapItemToSearchResult)
-                        .collect(Collectors.toList());
+                        .toList();
 
                 if (!matchingChannels.isEmpty()) {
                     return matchingChannels;
@@ -108,7 +107,7 @@ public class ApiYouTubeService {
                             return Long.compare(Math.abs(duration1.minus(minDuration).getSeconds()), Math.abs(duration2.minus(minDuration).getSeconds()));
                         })
                         .map(this::mapItemToSearchResult)
-                        .collect(Collectors.toList());
+                        .toList();
             } else {
                 log.warn("Invalid HTTP response status: {}", response.getStatusLine().getStatusCode());
             }

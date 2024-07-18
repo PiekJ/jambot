@@ -1,6 +1,6 @@
-package dev.joopie.jambot.models;
+package dev.joopie.jambot.model;
 
-import dev.joopie.jambot.models.base.BaseModel;
+import dev.joopie.jambot.model.base.BaseModel;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,7 +13,9 @@ import javax.persistence.Table;
 @Setter
 @Entity
 @Table(name = "track_source")
-public class TrackSource extends BaseModel<TrackSource> {
+public class TrackSource extends BaseModel {
+    public  static final String YOUTUBEID = "youtubeId";
+    public static final String SPOTIFYID = "spotifyId";
     private String youtubeId;
     private String spotifyId;
     private boolean rejected;

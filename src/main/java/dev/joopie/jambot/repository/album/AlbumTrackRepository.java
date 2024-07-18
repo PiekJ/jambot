@@ -1,10 +1,11 @@
 package dev.joopie.jambot.repository.album;
 
-import dev.joopie.jambot.models.AlbumTrack;
+import dev.joopie.jambot.exception.ValidationException;
+import dev.joopie.jambot.model.AlbumTrack;
 
 public interface AlbumTrackRepository {
-    AlbumTrack save(AlbumTrack albumTrack) throws RuntimeException;
+    AlbumTrack save(AlbumTrack albumTrack) throws ValidationException;
 
-    void delete(AlbumTrack albumTrack) throws RuntimeException;
+    void delete(AlbumTrack albumTrack) throws ValidationException;
 
 }
