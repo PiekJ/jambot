@@ -2,16 +2,15 @@ package dev.joopie.jambot.model;
 
 import dev.joopie.jambot.model.album.Album;
 import dev.joopie.jambot.model.base.BaseModel;
-import lombok.Getter;
-import lombok.Setter;
-
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.OneToMany;
-import jakarta.persistence.OneToOne;
-import java.time.Duration;
+import lombok.Getter;
+import lombok.Setter;
+
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,10 +39,10 @@ public class Track extends BaseModel {
 
     private String externalId;
 
-    private Duration duration;
+    private BigInteger duration;
 
-    @OneToOne(mappedBy = "track", fetch = FetchType.LAZY)
-    private TrackSource trackSource;
+    @OneToMany(mappedBy = "track", fetch = FetchType.EAGER)
+    private List<TrackSource> trackSources;
 
     public String getFormattedTrack() {
         return String.format("%s-%s",
@@ -51,6 +50,5 @@ public class Track extends BaseModel {
                         .map(Artist::getName)
                         .collect(Collectors.joining(",")),
                 getName());
-
     }
 }

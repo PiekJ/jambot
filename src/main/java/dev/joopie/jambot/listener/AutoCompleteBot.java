@@ -8,9 +8,9 @@ import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInterac
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -19,7 +19,8 @@ public class AutoCompleteBot extends ListenerAdapter {
    private final ArtistRepository artistRepository;
    private final TrackRepository trackRepository;
 
-    @Override
+   @Transactional
+   @Override
     public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
         if (event.getName().equals("search") && event.getFocusedOption().getName().equals("artist")) {
             List<Command.Choice> options = artistRepository.findAll().stream()
@@ -31,8 +32,10 @@ public class AutoCompleteBot extends ListenerAdapter {
 
         if (event.getName().equals("search") && event.getFocusedOption().getName().equals("songname")) {
             List<Command.Choice> options = trackRepository.findAll().stream()
-                    .filter(track -> track.getName().startsWith(event.getFocusedOption().getValue())) // only display words that start with the user's current input
-                    .map(track -> new Command.Choice(track.getName(), track.getName())) // map the words to choices
+                    .filter(artistTrack -> artistTrack.getArtists().stream()
+                            .anyMatch(artist -> artist.getName().contains(event.getOptions().getFirst().getAsString())))
+                    .filter(track -> track.getName().startsWith(event.getFocusedOption().getValue()))
+                    .map(track -> new Command.Choice(track.getName(), track.getName()))
                             .toList();
             event.replyChoices(options).queue();
         }

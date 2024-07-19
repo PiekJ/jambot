@@ -1,7 +1,6 @@
 package dev.joopie.jambot.api.spotify;
 
 import dev.joopie.jambot.model.Track;
-import dev.joopie.jambot.repository.track.TrackRepository;
 import dev.joopie.jambot.service.SpotifyAPIConverterService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -28,12 +27,7 @@ public class ApiSpotifyService {
     private static final Pattern SPOTIFY_URL_PATTERN = Pattern.compile("https?:\\/\\/(?:open\\.)?spotify.com\\/(user|episode|playlist|track)\\/(?:spotify\\/playlist\\/)?(\\w*)");
     private final SpotifyProperties properties;
     private SpotifyApi spotifyApi;
-
-
     private final SpotifyAPIConverterService spotifyAPIConverterService;
-
-
-    private final TrackRepository trackRepository;
     private LocalDateTime tokenExpireDate;
 
 

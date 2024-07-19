@@ -47,7 +47,7 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
                 .addOption(
                         OptionType.STRING,
                         COMMAND_OPTION_INPUT_ARTIST,
-                        "Name of your artist. If more than one, just provide one",
+                        "Name of your artist. If more than one, just provide one. If auto-complete does not give your option just type the name.",
                         true,true)
                 .addOption(
                         OptionType.STRING,

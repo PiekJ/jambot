@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.util.Optional;
 
 @Service
@@ -21,29 +22,25 @@ public class SearchService {
 
     private final ApiYouTubeService apiYouTubeService;
 
+
     public String performYoutubeSearch(Track track) {
-        if (track.getTrackSource() == null || track.getTrackSource().isRejected()) {
+        if (track.getTrackSources() == null || track.getTrackSources().isEmpty() ||  track.getTrackSources().stream().allMatch(TrackSource::isRejected)) {
             TrackSource trackSource = new TrackSource();
-            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(SECONDS_OFFSET), track.getDuration().plusSeconds(SECONDS_OFFSET), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
+            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), Duration.ofMillis(track.getDuration().longValue()).minusSeconds(SECONDS_OFFSET), Duration.ofMillis(track.getDuration().longValue()).plusSeconds(SECONDS_OFFSET), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
             trackSource.setSpotifyId(track.getExternalId());
             trackSource.setTrack(track);
             trackSourceService.save(trackSource);
             return trackSource.getYoutubeId();
         }
 
-        return track.getTrackSource().getYoutubeId();
+        return track.getTrackSources().stream().filter(trackSource -> !trackSource.isRejected()).map(TrackSource::getYoutubeId).findFirst().orElseGet(() -> Strings.EMPTY);
     }
 
     public String performSpotifyAndYoutubeSearch(String artist, String trackname) {
-        Optional<Track> track = apiSpotifyService.searchForTrack(artist, trackname);
-
-        if (track.isPresent() && track.get().getTrackSource() != null && !track.get().getTrackSource().isRejected()) {
-            return track.get().getTrackSource().getYoutubeId();
-        } else if (track.isPresent()) {
-            return performYoutubeSearch(track.get());
-        } else {
-            return Strings.EMPTY;
-        }
+        return apiSpotifyService.searchForTrack(artist, trackname)
+                .filter(t -> !t.getTrackSources().isEmpty() && t.getTrackSources().stream().noneMatch(TrackSource::isRejected))
+                .map(t -> t.getTrackSources().stream().filter(TrackSource::isRejected).map(TrackSource::getYoutubeId).findFirst().orElseGet(() -> performYoutubeSearch(t)))
+                .orElse(Strings.EMPTY);
     }
 
     public Optional<Track> getTrack(String input) {

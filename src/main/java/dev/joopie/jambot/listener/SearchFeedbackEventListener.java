@@ -31,9 +31,14 @@ public class SearchFeedbackEventListener extends ListenerAdapter {
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         if (event.getUser().isBot()) return;
+
+        if (!event.getUser().equals(event.getMessage().getInteraction().getUser())) {
+            event.reply(":rotating_light: You *nasty* boy! You are trying to react to a command that is not initiated by you. I see everything :wink:").setEphemeral(true).queue();
+            return;
+        }
         String componentId = event.getComponentId();
         if (componentId.equals("accept")) {
-            event.reply("You accepted! :star_struck: Great to hear that my Dora The Exploring did work out for you. Have fun listening to this banger! :muscle_tone2:").setEphemeral(true).queue();
+            event.reply("You accepted! :star_struck:  Great to hear that my Dora The Exploring did work out for you. Have fun listening to this banger! :muscle_tone2:").setEphemeral(true).queue();
         } else if (componentId.equals("reject")) {
             // Reject the link and delete the SpotifyToYoutube record
             final Optional<TrackSource> trackSource = getSpotifyToYoutubeFromMessage(event.getMessage());
@@ -41,12 +46,13 @@ public class SearchFeedbackEventListener extends ListenerAdapter {
             if (trackSource.isPresent()) {
                 trackSource.get().setRejected(true);
                 trackSourceService.save(trackSource.get());
-                event.reply("Thanks for your input! :pray_tone1: Only together we can make Jambot better. I will try to get another link next time. :wink:").setEphemeral(true).queue();
+                event.reply("Thanks for your input! :pray_tone1:  Only together we can make Jambot better. I will try to get another link next time. :wink:").setEphemeral(true).queue();
             } else {
                 log.error("Hmm. Tracksource is empty. This is strange...");
                 event.reply("Something went wrong on our side with handling your request. Try again later!").setEphemeral(true).queue();
             }
         }
+        event.getMessage().editMessageComponents().queue();
     }
 
     private static Optional<String> extractYouTubeId(String url) {

@@ -14,10 +14,11 @@ import dev.joopie.jambot.repository.track.TrackRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 
-import java.time.Duration;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +32,7 @@ public class SpotifyAPIConverterService {
     private final AlbumTrackRepository albumTrackRepository;
     private final TrackRepository trackRepository;
 
+    @Transactional
     public Track saveAPIResult(se.michaelthelin.spotify.model_objects.specification.Track trackResult) {
         Track track = null;
         if (trackResult != null) {
@@ -64,7 +66,7 @@ public class SpotifyAPIConverterService {
         } else {
             Track track = new dev.joopie.jambot.model.Track();
             track.setName(trackresult.getName());
-            track.setDuration(Duration.ofMillis(trackresult.getDurationMs()));
+            track.setDuration(BigInteger.valueOf(trackresult.getDurationMs()));
             track.setArtists(artists);
             track.setExternalId(trackresult.getId());
             track = trackRepository.save(track);

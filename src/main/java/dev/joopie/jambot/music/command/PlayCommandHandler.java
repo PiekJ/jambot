@@ -24,6 +24,7 @@ import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.Optional;
@@ -66,6 +67,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         return COMMAND_NAME.equals(event.getName());
     }
 
+    @Transactional
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
         final OptionMapping inputOption = event.getOption(COMMAND_OPTION_INPUT_NAME);
@@ -123,6 +125,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
                 );
         
     }
+
 
     private String handleSpotifyLink(String input) {
         if (input.contains("track")) {
