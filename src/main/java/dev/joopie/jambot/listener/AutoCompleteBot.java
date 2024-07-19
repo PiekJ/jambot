@@ -25,7 +25,7 @@ public class AutoCompleteBot extends ListenerAdapter {
             List<Command.Choice> options = artistRepository.findAll().stream()
                     .filter(artist -> artist.getName().startsWith(event.getFocusedOption().getValue())) // only display words that start with the user's current input
                     .map(artist -> new Command.Choice(artist.getName(), artist.getName())) // map the words to choices
-                    .collect(Collectors.toList());
+                            .toList();
             event.replyChoices(options).queue();
         }
 
@@ -33,7 +33,7 @@ public class AutoCompleteBot extends ListenerAdapter {
             List<Command.Choice> options = trackRepository.findAll().stream()
                     .filter(track -> track.getName().startsWith(event.getFocusedOption().getValue())) // only display words that start with the user's current input
                     .map(track -> new Command.Choice(track.getName(), track.getName())) // map the words to choices
-                    .collect(Collectors.toList());
+                            .toList();
             event.replyChoices(options).queue();
         }
     }

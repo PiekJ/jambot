@@ -22,14 +22,7 @@ public class SearchService {
     private final ApiYouTubeService apiYouTubeService;
 
     public String performYoutubeSearch(Track track) {
-        if (track.getTrackSource() == null) {
-            TrackSource trackSource = new TrackSource();
-            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(SECONDS_OFFSET), track.getDuration().plusSeconds(SECONDS_OFFSET), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
-            trackSource.setSpotifyId(track.getExternalId());
-            trackSource.setTrack(track);
-            trackSourceService.save(trackSource);
-            return trackSource.getYoutubeId();
-        } else if (track.getTrackSource().isRejected()) {
+        if (track.getTrackSource() == null || track.getTrackSource().isRejected()) {
             TrackSource trackSource = new TrackSource();
             trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), track.getDuration().minusSeconds(SECONDS_OFFSET), track.getDuration().plusSeconds(SECONDS_OFFSET), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
             trackSource.setSpotifyId(track.getExternalId());

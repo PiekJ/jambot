@@ -15,8 +15,8 @@ import jakarta.persistence.Table;
 @Entity
 @Table(name = "track_source")
 public class TrackSource extends BaseModel {
-    public  static final String YOUTUBEID = "youtubeId";
-    public static final String SPOTIFYID = "spotifyId";
+    public  static final String YOUTUBEID_FIELD = "youtubeId";
+    public static final String SPOTIFYID_FIELD = "spotifyId";
 
     @Nonnull
     private String youtubeId;

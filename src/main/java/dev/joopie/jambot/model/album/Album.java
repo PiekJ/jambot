@@ -18,8 +18,8 @@ import java.util.Set;
 @Setter
 @Entity
 public class Album extends BaseModel {
-    public static final String NAME = "name";
-    public static final String EXTERNALID = "external_id";
+    public static final String NAME_FIELD = "name";
+    public static final String EXTERNALID_FIELD = "external_id";
 
     private String name;
     private AlbumGroup albumGroup;

@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @Getter
 @Setter
 public class Track extends BaseModel {
-    public static final String EXTERNALID = "external_id";
+    public static final String EXTERNALID_FIELD = "external_id";
 
     @OneToMany
     @JoinTable(

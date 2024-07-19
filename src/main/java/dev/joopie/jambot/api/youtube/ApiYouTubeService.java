@@ -68,10 +68,7 @@ public class ApiYouTubeService {
                 .stream()
                 .map(SearchResponse.Item::getId)
                 .map(SearchResponse.Item.Id::getVideoId)
-                .filter(videoId -> {
-                    // Check if the video ID is not rejected
-                    return !trackSourceService.isRejected(videoId);
-                })
+                .filter(videoId -> !trackSourceService.isRejected(videoId))
                 .toList();
     }
 

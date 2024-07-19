@@ -9,6 +9,7 @@ import dev.joopie.jambot.music.JambotMusicServiceException;
 import dev.joopie.jambot.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -20,6 +21,7 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.RestAction;
+import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
 
@@ -103,7 +105,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         }
     }
 
-    public RestAction<?> handlePlay(CommandInteraction event, String videoId) {
+    public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, String videoId) {
         musicService.play(event.getMember(), videoId);
         String parsedVideoId;
         if (URL_PATTERN.matcher(videoId).matches()) {
