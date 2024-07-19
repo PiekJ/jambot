@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -63,8 +64,8 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
 
-        final var inputArtistOption = event.getOption(COMMAND_OPTION_INPUT_ARTIST);
-        final var inputTrackOption = event.getOption(COMMAND_OPTION_INPUT_SONGNAME);
+        final OptionMapping inputArtistOption = event.getOption(COMMAND_OPTION_INPUT_ARTIST);
+        final OptionMapping inputTrackOption = event.getOption(COMMAND_OPTION_INPUT_SONGNAME);
 
         if (Objects.isNull(inputArtistOption)) {
             return event.reply("Please provide me an artist name")
@@ -79,17 +80,17 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
         event.deferReply().queue();
 
         try {
-            final var artistName = Objects.requireNonNull(inputArtistOption).getAsString();
-            final var trackName = Objects.requireNonNull(inputTrackOption).getAsString();
+            final String artistName = Objects.requireNonNull(inputArtistOption).getAsString();
+            final String trackName = Objects.requireNonNull(inputTrackOption).getAsString();
 
 
-            final var videoId = searchService.performSpotifyAndYoutubeSearch(artistName, trackName);
+            final String videoId = searchService.performSpotifyAndYoutubeSearch(artistName, trackName);
 
             if (videoId.isEmpty()) {
                 return event.reply(String.format("We could not find any results with your search **%s - %s**", artistName, trackName)).setEphemeral(true);
             } else {
                 musicService.play(event.getMember(), videoId);
-                final var parsedVideoId = YOUTUBE_URL + videoId;
+                final String parsedVideoId = YOUTUBE_URL + videoId;
 
                 // Create and send the message with buttons
                 return event.getHook().sendMessage(

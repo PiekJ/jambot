@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -46,14 +47,14 @@ public class VolumeCommandHandler implements CommandHandler {
 
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
-        final var volumeOption = event.getOption(COMMAND_OPTION_VOLUME_NAME);
+        final OptionMapping volumeOption = event.getOption(COMMAND_OPTION_VOLUME_NAME);
         if (Objects.isNull(volumeOption)) {
             return event.reply("How did you manage to not provide the volume?!")
                     .setEphemeral(true);
         }
 
         try {
-            final var volume = volumeOption.getAsInt();
+            final int volume = volumeOption.getAsInt();
 
             musicService.volume(event.getMember(), volume);
 

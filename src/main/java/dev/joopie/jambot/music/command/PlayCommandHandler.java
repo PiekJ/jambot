@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -65,7 +66,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
 
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
-        final var inputOption = event.getOption(COMMAND_OPTION_INPUT_NAME);
+        final OptionMapping inputOption = event.getOption(COMMAND_OPTION_INPUT_NAME);
 
         if (Objects.isNull(inputOption)) {
             return event.reply("U whut m8, provide a track url or search term.")
@@ -76,7 +77,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         event.deferReply().queue();
 
         try {
-            final var input = inputOption.getAsString();
+            final String input = inputOption.getAsString();
 
             if (!URL_PATTERN.matcher(input).matches()) {
                 return event.getHook().sendMessage("In order to use this command, a link must be provided. If you want to search for music please use our `/search` command")

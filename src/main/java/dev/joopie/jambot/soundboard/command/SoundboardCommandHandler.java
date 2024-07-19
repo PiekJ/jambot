@@ -50,14 +50,14 @@ public class SoundboardCommandHandler implements CommandHandler, CommandAutocomp
 
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
-        final var authorOption = event.getOption(COMMAND_OPTION_AUTHOR_NAME);
+        final OptionMapping authorOption = event.getOption(COMMAND_OPTION_AUTHOR_NAME);
 
         if (Objects.isNull(authorOption)) {
             return event.reply("Provide author name known by the soundboard u tit.")
                     .setEphemeral(true);
         }
 
-        final var authorName = authorOption.getAsString();
+        final String authorName = authorOption.getAsString();
 
         try {
             soundboardService.playRandomSoundByAuthor(event.getMember(), authorName);

@@ -27,7 +27,7 @@ public class SoundboardService {
 
     @PostConstruct
     public void postConstruct() {
-        final var dtos = apiSoundBoardService.fetchSoundBoardSounds();
+        final List<SoundAuthorDto> dtos = apiSoundBoardService.fetchSoundBoardSounds();
         soundAuthors = dtos.stream().collect(Collectors.toMap(
                 SoundAuthorDto::getAuthorName,
                 x -> SoundAuthor.builder()
@@ -46,7 +46,7 @@ public class SoundboardService {
 
     public void playRandomSoundByAuthor(final Member member, final String authorName) {
         if (soundAuthors.containsKey(authorName)) {
-            final var soundUrl = soundAuthors.get(authorName).getRandomSoundUrl(random);
+            final String soundUrl = soundAuthors.get(authorName).getRandomSoundUrl(random);
             log.info("SoundBoard `{}` track `{}`", authorName, soundUrl);
             musicService.play(member, soundUrl);
         } else {

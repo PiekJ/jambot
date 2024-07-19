@@ -5,16 +5,19 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.requests.restaction.CacheRestAction;
 import org.springframework.scheduling.TaskScheduler;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
@@ -36,17 +39,17 @@ public class GuildMusicPlayer {
     private ScheduledFuture<?> scheduledLeaveTask;
 
     public void joinVoiceChannelOfUser(final User user) {
-        final var guild = guildProvider.getGuild(guildId);
+        final Guild guild = guildProvider.getGuild(guildId);
         joinVoiceChannelOfUser(user, guild);
     }
 
     public void joinVoiceChannelOfMember(final Member member) {
-        final var guild = guildProvider.getGuild(guildId);
+        final Guild guild = guildProvider.getGuild(guildId);
         joinVoiceChannelOfMember(member, guild);
     }
 
     public void join(final AudioChannelUnion voiceChannel) {
-        final var guild = guildProvider.getGuild(guildId);
+        final Guild guild = guildProvider.getGuild(guildId);
         join(voiceChannel, guild);
     }
 
@@ -55,7 +58,7 @@ public class GuildMusicPlayer {
     }
 
     public void leave(final boolean scheduleTask) {
-        final var guild = guildProvider.getGuild(guildId);
+        final Guild guild = guildProvider.getGuild(guildId);
         if (isConnectedToVoiceChannel(guild)) {
             if (scheduleTask) {
                 scheduleLeaveTask();
@@ -115,7 +118,7 @@ public class GuildMusicPlayer {
 
         var iteratorIndex = 0;
 
-        final var iterator = audioTrackQueue.iterator();
+        final Iterator<AudioTrack> iterator = audioTrackQueue.iterator();
         while (iterator.hasNext()) {
             iterator.next();
 
@@ -136,13 +139,13 @@ public class GuildMusicPlayer {
             return Collections.emptyList();
         }
 
-        final var result = new ArrayList<>(audioTrackQueue);
+        final List<AudioTrack> result = new ArrayList<>(audioTrackQueue);
         result.add(0, audioPlayer.getPlayingTrack());
         return result;
     }
 
     public synchronized void shuffleQueuedAudioTracks() {
-        final var temp = new ArrayList<>(audioTrackQueue);
+        final List<AudioTrack> temp = new ArrayList<>(audioTrackQueue);
         Collections.shuffle(temp);
         audioTrackQueue.clear();
         audioTrackQueue.addAll(temp);
@@ -167,7 +170,7 @@ public class GuildMusicPlayer {
     }
 
     private void joinVoiceChannelOfUser(final User user, final Guild guild) {
-        final var member = guild.retrieveMember(user).complete();
+        final Member member = guild.retrieveMember(user).complete();
         if (Objects.isNull(member)) {
             log.warn("User `{}` is not a member of guild `{}` or not joined any voice channel.",
                     user.getName(),
@@ -186,7 +189,7 @@ public class GuildMusicPlayer {
             throw new JambotMusicPlayerException("I'm already connected!");
         }
 
-        final var voiceState = member.getVoiceState();
+        final GuildVoiceState voiceState = member.getVoiceState();
 
         if (Objects.isNull(voiceState) || !voiceState.inAudioChannel()) {
             log.warn("User `{}` is not in voice channel.", member.getEffectiveName());

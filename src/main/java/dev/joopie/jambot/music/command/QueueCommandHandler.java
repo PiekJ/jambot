@@ -13,9 +13,10 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
+import java.awt.Color;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -43,9 +44,9 @@ public class QueueCommandHandler implements CommandHandler {
 
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
-        final var dtos = musicService.getQueuedAudioTracks(event.getGuild());
+        final List<AudioTrackInfoDto> dtos = musicService.getQueuedAudioTracks(event.getGuild());
 
-        final var builder = new EmbedBuilder();
+        final EmbedBuilder builder = new EmbedBuilder();
         builder.setColor(new Color(0x0099FF));
         builder.setTitle("%s's Track Queue List".formatted(event.getGuild().getName()));
         builder.setTimestamp(OffsetDateTime.now());
@@ -64,7 +65,7 @@ public class QueueCommandHandler implements CommandHandler {
                                 .mapToLong(AudioTrackInfoDto::getPlayTimeLeft)
                                 .sum())));
 
-        final var currentlyPlayingDto = dtos.remove(0);
+        final AudioTrackInfoDto currentlyPlayingDto = dtos.remove(0);
 
         builder.addField(
                 "Currently Playing",
@@ -80,10 +81,10 @@ public class QueueCommandHandler implements CommandHandler {
             return event.replyEmbeds(builder.build());
         }
 
-        final var trackNameStringBuilder = new StringBuilder();
-        final var trackDurationStringBuilder = new StringBuilder();
+        final StringBuilder trackNameStringBuilder = new StringBuilder();
+        final StringBuilder trackDurationStringBuilder = new StringBuilder();
 
-        for (final var dto : dtos) {
+        for (final AudioTrackInfoDto dto : dtos) {
             if (dto.getIndex() >= 11) {
                 break;
             }
@@ -105,7 +106,7 @@ public class QueueCommandHandler implements CommandHandler {
     }
 
     private static String formatMillisToHumanTime(final long millis) {
-        final var duration = Duration.ofMillis(millis);
+        final Duration duration = Duration.ofMillis(millis);
         return "%02d:%02d:%02d".formatted(duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
     }
 

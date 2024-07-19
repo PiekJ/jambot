@@ -36,7 +36,7 @@ public class SearchFeedbackEventListener extends ListenerAdapter {
             event.reply("You accepted! :star_struck: Great to hear that my Dora The Exploring did work out for you. Have fun listening to this banger! :muscle_tone2:").setEphemeral(true).queue();
         } else if (componentId.equals("reject")) {
             // Reject the link and delete the SpotifyToYoutube record
-            final var trackSource = getSpotifyToYoutubeFromMessage(event.getMessage());
+            final Optional<TrackSource> trackSource = getSpotifyToYoutubeFromMessage(event.getMessage());
 
             if (trackSource.isPresent()) {
                 trackSource.get().setRejected(true);

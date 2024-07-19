@@ -9,6 +9,9 @@ import org.apache.hc.core5.http.ParseException;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
+import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
+import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
+import se.michaelthelin.spotify.requests.data.tracks.GetTrackRequest;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -40,11 +43,11 @@ public class ApiSpotifyService {
                 .setClientSecret(properties.getClientSecret())
                 .build();
 
-        final var clientCredentialsRequest = spotifyApi.clientCredentials()
+        final ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
                 .build();
 
         try {
-            final var clientCredentials = clientCredentialsRequest.execute();
+            final ClientCredentials clientCredentials = clientCredentialsRequest.execute();
             spotifyApi.setAccessToken(clientCredentials.getAccessToken());
             tokenExpireDate = LocalDateTime.now().plusSeconds(clientCredentials.getExpiresIn());
 
@@ -59,15 +62,15 @@ public class ApiSpotifyService {
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
-        final var trackId = getSpotifyIdFromLink(link);
+        final Optional<String> trackId = getSpotifyIdFromLink(link);
 
         if (trackId.isEmpty()) {
             return Optional.empty();
         }
-        final var getTrackRequest = spotifyApi.getTrack(trackId.get()).build();
+        final GetTrackRequest getTrackRequest = spotifyApi.getTrack(trackId.get()).build();
 
         try {
-            final var apiTrack = getTrackRequest.execute();
+            final se.michaelthelin.spotify.model_objects.specification.Track apiTrack = getTrackRequest.execute();
 
             if (apiTrack != null) {
                return Optional.of(spotifyAPIConverterService.saveAPIResult(apiTrack));
@@ -84,7 +87,7 @@ public class ApiSpotifyService {
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
-        final var searchQuery = String.format("%s - %s", artistName, trackName);
+        final String searchQuery = String.format("%s - %s", artistName, trackName);
         try {
             List<se.michaelthelin.spotify.model_objects.specification.Track> searchResult =
                     Arrays.stream(spotifyApi.searchTracks(searchQuery).build().execute().getItems())
