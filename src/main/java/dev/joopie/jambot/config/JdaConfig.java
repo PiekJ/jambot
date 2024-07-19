@@ -1,6 +1,7 @@
 package dev.joopie.jambot.config;
 
 import dev.joopie.jambot.JambotListener;
+import dev.joopie.jambot.listener.AutoCompleteBot;
 import dev.joopie.jambot.listener.SearchFeedbackEventListener;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -19,7 +20,7 @@ import java.util.List;
 @EnableConfigurationProperties(JdaProperties.class)
 public class JdaConfig {
     @Bean
-    public JDA jda(final JdaProperties properties, final JambotListener listener, final SearchFeedbackEventListener searchFeedbackEventListener) throws LoginException {
+    public JDA jda(final JdaProperties properties, final JambotListener listener, final SearchFeedbackEventListener searchFeedbackEventListener, final AutoCompleteBot autoCompleteBot) throws LoginException {
         return JDABuilder.create(
                         properties.getToken(),
                         List.of(
@@ -40,6 +41,7 @@ public class JdaConfig {
                 .setMemberCachePolicy(MemberCachePolicy.VOICE)
                 .addEventListeners(listener)
                 .addEventListeners(searchFeedbackEventListener)
+                .addEventListeners(autoCompleteBot)
                 .setActivity(Activity.playing("some music").withState("Yay"))
                 .build();
     }

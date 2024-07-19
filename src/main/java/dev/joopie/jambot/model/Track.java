@@ -42,7 +42,7 @@ public class Track extends BaseModel {
 
     private Duration duration;
 
-    @OneToOne(mappedBy = "track", fetch = FetchType.EAGER)
+    @OneToOne(mappedBy = "track", fetch = FetchType.LAZY)
     private TrackSource trackSource;
 
     public String getFormattedTrack() {

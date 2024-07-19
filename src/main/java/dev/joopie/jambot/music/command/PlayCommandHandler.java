@@ -36,6 +36,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
     private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
     public static final Pattern URL_PATTERN = Pattern.compile("^(http(|s)://.*)$");
     public static final int SECONDS_OFFSET = 15;
+    private static final String YOUTUBE_URL = "https://www.youtube.com/watch?v=";
 
     private final GuildMusicService musicService;
 
@@ -72,12 +73,13 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         }
 
 
+        event.deferReply().queue();
 
         try {
             final var input = inputOption.getAsString();
 
             if (!URL_PATTERN.matcher(input).matches()) {
-                return event.reply("In order to use this command, a link must be provided. If you want to search for music please use our `/search` command")
+                return event.getHook().sendMessage("In order to use this command, a link must be provided. If you want to search for music please use our `/search` command")
                         .setEphemeral(true);
             }
             String videoId = Strings.EMPTY;
@@ -106,7 +108,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         if (URL_PATTERN.matcher(videoId).matches()) {
             parsedVideoId = videoId;
         } else {
-            parsedVideoId = parseIdToYouTubeWatchUrl(videoId);
+            parsedVideoId = YOUTUBE_URL + videoId;
         }
 
         // Create and send the message with buttons
@@ -126,9 +128,5 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         }
 
         return Strings.EMPTY;
-    }
-
-    private static String parseIdToYouTubeWatchUrl(String videoId) {
-        return "https://www.youtube.com/watch?v=" + videoId;
     }
 }

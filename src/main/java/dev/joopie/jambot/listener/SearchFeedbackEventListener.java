@@ -65,9 +65,5 @@ public class SearchFeedbackEventListener extends ListenerAdapter {
         }
         return Optional.empty();
     }
-
-    private static String parseIdToYouTubeWatchUrl(String videoId) {
-        return "https://www.youtube.com/watch?v=" + videoId;
-    }
 }
 
