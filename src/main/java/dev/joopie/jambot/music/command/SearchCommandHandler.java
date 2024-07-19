@@ -51,7 +51,7 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
                 .addOption(
                         OptionType.STRING,
                         COMMAND_OPTION_INPUT_SONGNAME,
-                        "Name of your song. If auto-complete does not give your option just type in the name. But as specific as you can. Include eq. Remix / Radio Edit / Re-Mastered etc.",
+                        "Name of your song. If auto-complete does not give your option just type in the name. Be as specific as you can. Include eq. Remix / Radio Edit / Re-Mastered etc.",
                         true,true);
     }
 

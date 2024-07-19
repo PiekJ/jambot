@@ -25,8 +25,7 @@ public class SearchFeedbackEventListener extends ListenerAdapter {
     private static final Pattern PATTERN_2 = Pattern.compile(REGEX_2);
 
     private Optional<TrackSource> getSpotifyToYoutubeFromMessage(Message message) {
-        Optional<String> youtubeId = extractYouTubeId(message.getContentStripped());
-        return youtubeId.map(trackSourceService::findByYoutubeId);
+        return extractYouTubeId(message.getContentStripped()).flatMap(trackSourceService::findByYoutubeId);
     }
 
     @Override

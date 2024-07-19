@@ -1,16 +1,13 @@
 package dev.joopie.jambot.repository.track;
 
-import dev.joopie.jambot.exception.ValidationException;
 import dev.joopie.jambot.model.TrackSource;
+import org.springframework.data.repository.ListCrudRepository;
 
-public interface TrackSourceRepository {
+import java.util.Optional;
 
-    default TrackSourceFinder find() {
-        return new TrackSourceFinder();
-    }
+public interface TrackSourceRepository extends ListCrudRepository<TrackSource, Long> {
 
-    TrackSource save(TrackSource trackSource) throws ValidationException;
+    Optional<TrackSource> findByYoutubeId(String youtubeId);
 
-    void delete(TrackSource trackSource) throws ValidationException;
-
+    Optional<TrackSource> findBySpotifyId(String spotifyId);
 }

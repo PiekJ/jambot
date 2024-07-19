@@ -1,14 +1,10 @@
 package dev.joopie.jambot.repository.album;
 
-import dev.joopie.jambot.exception.ValidationException;
 import dev.joopie.jambot.model.album.Album;
+import org.springframework.data.repository.ListCrudRepository;
 
-public interface AlbumRepository {
-    default AlbumFinder find() {
-        return new AlbumFinder();
-    }
+import java.util.Optional;
 
-    Album save(Album album) throws ValidationException;
-
-    void delete(Album album) throws ValidationException;
+public interface AlbumRepository extends ListCrudRepository<Album, Long> {
+    Optional<Album> findByExternalId(String externalId);
 }

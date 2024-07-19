@@ -1,10 +1,9 @@
 package dev.joopie.jambot.model;
 
 import dev.joopie.jambot.model.base.BaseModel;
+import jakarta.persistence.Entity;
 import lombok.Getter;
 import lombok.Setter;
-
-import jakarta.persistence.Entity;
 
 @Entity(name = "album_track")
 @Getter

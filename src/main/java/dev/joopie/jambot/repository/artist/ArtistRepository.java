@@ -1,14 +1,10 @@
 package dev.joopie.jambot.repository.artist;
 
 import dev.joopie.jambot.model.Artist;
-import dev.joopie.jambot.exception.ValidationException;
+import org.springframework.data.repository.ListCrudRepository;
 
-public interface ArtistRepository {
-    default ArtistFinder find() {
-        return new ArtistFinder();
-    }
+import java.util.Optional;
 
-    Artist save(Artist artist) throws ValidationException;
-
-    void delete(Artist artist) throws ValidationException;
+public interface ArtistRepository extends ListCrudRepository<Artist, Long> {
+    Optional<Artist> findByExternalId(String id);
 }

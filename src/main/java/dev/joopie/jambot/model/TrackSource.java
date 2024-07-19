@@ -1,6 +1,7 @@
 package dev.joopie.jambot.model;
 
 import dev.joopie.jambot.model.base.BaseModel;
+import jakarta.annotation.Nonnull;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,7 +17,10 @@ import jakarta.persistence.Table;
 public class TrackSource extends BaseModel {
     public  static final String YOUTUBEID = "youtubeId";
     public static final String SPOTIFYID = "spotifyId";
+
+    @Nonnull
     private String youtubeId;
+    @Nonnull
     private String spotifyId;
     private boolean rejected;
 
@@ -24,8 +28,4 @@ public class TrackSource extends BaseModel {
     @JoinColumn(name = "track_id", referencedColumnName = "id")
     private Track track;
 
-    @Override
-    public boolean validateSave() {
-        return spotifyId != null && !spotifyId.isEmpty() && youtubeId != null && !youtubeId.isEmpty();
-    }
 }

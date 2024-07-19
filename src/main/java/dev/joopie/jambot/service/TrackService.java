@@ -5,13 +5,14 @@ import dev.joopie.jambot.repository.track.TrackRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class TrackService {
     private final TrackRepository trackRepository;
 
-
-    public Track findByExternalId(String externalId) {
-        return trackRepository.find().byExternalId(externalId);
+    public Optional<Track> findByExternalId(String externalId) {
+        return trackRepository.findByExternalId(externalId);
     }
 }

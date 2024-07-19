@@ -33,18 +33,17 @@ public class TrackSourceService {
         }
     }
 
-    public TrackSource findByYoutubeId(String youtubeId) {
-        return trackSourceRepository.find().byYoutubeId(youtubeId);
+    public Optional<TrackSource> findByYoutubeId(String youtubeId) {
+        return trackSourceRepository.findByYoutubeId(youtubeId);
     }
 
 
-    public TrackSource findBySpotifyId(String spotifyId) {
-        return trackSourceRepository.find().bySpotifyId(spotifyId);
+    public Optional<TrackSource> findBySpotifyId(String spotifyId) {
+        return trackSourceRepository.findBySpotifyId(spotifyId);
     }
 
     public boolean isRejected(String youtubeId) {
-        TrackSource trackSource = trackSourceRepository.find().byRejectedYoutubeId(youtubeId);
-        return trackSource != null && trackSource.isRejected();
+        return trackSourceRepository.findByYoutubeId(youtubeId).map(TrackSource::isRejected).orElse(false);
     }
 
 }

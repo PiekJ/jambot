@@ -1,14 +1,10 @@
 package dev.joopie.jambot.repository.track;
 
 import dev.joopie.jambot.model.Track;
-import dev.joopie.jambot.exception.ValidationException;
+import org.springframework.data.repository.ListCrudRepository;
 
-public interface TrackRepository {
-    default TrackFinder find() {
-        return new TrackFinder();
-    }
+import java.util.Optional;
 
-    Track save(Track track) throws ValidationException;
-
-    void delete(Track track) throws ValidationException;
+public interface TrackRepository extends ListCrudRepository<Track, Long> {
+    Optional<Track> findByExternalId(String externalId);
 }
