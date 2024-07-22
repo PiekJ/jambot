@@ -18,7 +18,6 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -120,7 +119,7 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
     @Transactional
     @Override
     public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
-        if (event.getName().equals("search") && event.getFocusedOption().getName().equals("artist")) {
+        if (event.getName().equals(COMMAND_NAME) && event.getFocusedOption().getName().equals(COMMAND_OPTION_INPUT_ARTIST)) {
             var options = artistRepository.findAll().stream()
                     .filter(artist -> artist.getName().startsWith(event.getFocusedOption().getValue())) // only display words that start with the user's current input
                     .map(artist -> new Command.Choice(artist.getName(), artist.getName())) // map the words to choices
@@ -128,7 +127,7 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
             event.replyChoices(options).queue();
         }
 
-        if (event.getName().equals("search") && event.getFocusedOption().getName().equals("songname")) {
+        if (event.getName().equals(COMMAND_NAME) && event.getFocusedOption().getName().equals(COMMAND_OPTION_INPUT_SONGNAME)) {
             var options = trackRepository.findAll().stream()
                     .filter(artistTrack -> artistTrack.getArtists().stream()
                             .anyMatch(artist -> artist.getName().contains(event.getOptions().getFirst().getAsString())))

@@ -1,7 +1,6 @@
 package dev.joopie.jambot.config;
 
 import dev.joopie.jambot.JambotListener;
-import dev.joopie.jambot.listener.AutoCompleteBot;
 import dev.joopie.jambot.listener.SearchFeedbackEventListener;
 import dev.joopie.jambot.music.command.SearchCommandHandler;
 import net.dv8tion.jda.api.JDA;

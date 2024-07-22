@@ -5,6 +5,7 @@ import dev.joopie.jambot.model.AlbumTrack;
 import dev.joopie.jambot.model.Artist;
 import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.model.album.Album;
+import dev.joopie.jambot.model.album.AlbumGroup;
 import dev.joopie.jambot.model.album.AlbumType;
 import dev.joopie.jambot.repository.album.AlbumRepository;
 import dev.joopie.jambot.repository.album.AlbumTrackRepository;
@@ -88,7 +89,7 @@ public class SpotifyAPIConverterService {
             var album = new Album();
             album.setName(albumSimplified.getName());
             album.setArtists(mapAndSaveArtists(albumSimplified.getArtists()));
-            //album.setAlbumGroup(albumSimplified.getAlbumGroup() != null ? AlbumGroup.keyOf(albumSimplified.getAlbumGroup().group) : null);
+            album.setAlbumGroup(albumSimplified.getAlbumGroup() != null ? AlbumGroup.keyOf(albumSimplified.getAlbumGroup().group) : null);
             album.setAlbumType(albumSimplified.getAlbumType() != null ? AlbumType.keyOf(albumSimplified.getAlbumType().type) : null);
             album.setExternalId(albumSimplified.getId());
             return albumRepository.save(album);

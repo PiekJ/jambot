@@ -3,7 +3,6 @@ package dev.joopie.jambot.model.album;
 import dev.joopie.jambot.model.Artist;
 import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.model.base.BaseModel;
-import jakarta.persistence.Column;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.Getter;
