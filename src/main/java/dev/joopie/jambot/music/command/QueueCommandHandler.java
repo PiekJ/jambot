@@ -44,9 +44,9 @@ public class QueueCommandHandler implements CommandHandler {
 
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
-        final List<AudioTrackInfoDto> dtos = musicService.getQueuedAudioTracks(event.getGuild());
+        final var dtos = musicService.getQueuedAudioTracks(event.getGuild());
 
-        final EmbedBuilder builder = new EmbedBuilder();
+        final var builder = new EmbedBuilder();
         builder.setColor(new Color(0x0099FF));
         builder.setTitle("%s's Track Queue List".formatted(event.getGuild().getName()));
         builder.setTimestamp(OffsetDateTime.now());
@@ -65,7 +65,7 @@ public class QueueCommandHandler implements CommandHandler {
                                 .mapToLong(AudioTrackInfoDto::getPlayTimeLeft)
                                 .sum())));
 
-        final AudioTrackInfoDto currentlyPlayingDto = dtos.remove(0);
+        final var currentlyPlayingDto = dtos.remove(0);
 
         builder.addField(
                 "Currently Playing",
@@ -81,10 +81,10 @@ public class QueueCommandHandler implements CommandHandler {
             return event.replyEmbeds(builder.build());
         }
 
-        final StringBuilder trackNameStringBuilder = new StringBuilder();
-        final StringBuilder trackDurationStringBuilder = new StringBuilder();
+        final var trackNameStringBuilder = new StringBuilder();
+        final var trackDurationStringBuilder = new StringBuilder();
 
-        for (final AudioTrackInfoDto dto : dtos) {
+        for (final var dto : dtos) {
             if (dto.getIndex() >= 11) {
                 break;
             }
@@ -106,7 +106,7 @@ public class QueueCommandHandler implements CommandHandler {
     }
 
     private static String formatMillisToHumanTime(final long millis) {
-        final Duration duration = Duration.ofMillis(millis);
+        final var duration = Duration.ofMillis(millis);
         return "%02d:%02d:%02d".formatted(duration.toHours(), duration.toMinutesPart(), duration.toSecondsPart());
     }
 

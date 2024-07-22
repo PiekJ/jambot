@@ -37,8 +37,8 @@ public class SpotifyAPIConverterService {
         Track track = null;
         if (trackResult != null) {
             try {
-                List<Artist> artists = mapAndSaveArtists(trackResult.getArtists());
-                Album album = mapAndSaveAlbum(trackResult.getAlbum());
+                var artists = mapAndSaveArtists(trackResult.getArtists());
+                var album = mapAndSaveAlbum(trackResult.getAlbum());
                 track = mapAndSaveTrack(trackResult, artists, album);
             } catch (RuntimeException e) {
                 log.error("Error while saving Spotify API results into our database", e);
@@ -50,13 +50,13 @@ public class SpotifyAPIConverterService {
     }
 
     private Track mapAndSaveTrack(se.michaelthelin.spotify.model_objects.specification.Track trackresult, List<Artist> artists, Album album) throws ValidationException {
-        Optional<Track> dbTrack = trackRepository.findByExternalId(trackresult.getId());
+        var dbTrack = trackRepository.findByExternalId(trackresult.getId());
 
         if (dbTrack.isPresent() && dbTrack.get().getAlbum().contains(album)) {
             return dbTrack.get();
 
         } else if (dbTrack.isPresent() && !dbTrack.get().getAlbum().contains(album)) {
-            AlbumTrack albumTrack = new AlbumTrack();
+            var albumTrack = new AlbumTrack();
             albumTrack.setTrackNumber(trackresult.getTrackNumber());
             albumTrack.setTrackId(dbTrack.get().getId());
             albumTrack.setAlbumId(album.getId());
@@ -64,14 +64,14 @@ public class SpotifyAPIConverterService {
             albumTrackRepository.save(albumTrack);
             return dbTrack.get();
         } else {
-            Track track = new dev.joopie.jambot.model.Track();
+            var track = new dev.joopie.jambot.model.Track();
             track.setName(trackresult.getName());
             track.setDuration(BigInteger.valueOf(trackresult.getDurationMs()));
             track.setArtists(artists);
             track.setExternalId(trackresult.getId());
             track = trackRepository.save(track);
 
-            AlbumTrack albumTrack = new AlbumTrack();
+            var albumTrack = new AlbumTrack();
             albumTrack.setTrackNumber(trackresult.getTrackNumber());
             albumTrack.setTrackId(track.getId());
             albumTrack.setAlbumId(album.getId());
@@ -84,7 +84,7 @@ public class SpotifyAPIConverterService {
 
     private Album mapAndSaveAlbum(AlbumSimplified albumSimplified) throws ValidationException {
         return albumRepository.findByExternalId(albumSimplified.getId()).orElseGet(() -> {
-            Album album = new Album();
+            var album = new Album();
             album.setName(albumSimplified.getName());
             album.setArtists(mapAndSaveArtists(albumSimplified.getArtists()));
             album.setAlbumGroup(albumSimplified.getAlbumGroup() != null ? AlbumGroup.keyOf(albumSimplified.getAlbumGroup().group) : null);
@@ -96,7 +96,7 @@ public class SpotifyAPIConverterService {
 
     private List<Artist> mapAndSaveArtists(ArtistSimplified[] artistSimplifieds) throws ValidationException {
         return Arrays.stream(artistSimplifieds).map(artistSimplified -> artistRepository.findByExternalId(artistSimplified.getId()).orElseGet(() -> {
-            Artist artist = new Artist();
+            var artist = new Artist();
             artist.setName(artistSimplified.getName());
             artist.setExternalId(artistSimplified.getId());
             artistRepository.save(artist);

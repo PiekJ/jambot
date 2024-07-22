@@ -23,7 +23,7 @@ public class AutoCompleteBot extends ListenerAdapter {
    @Override
     public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
         if (event.getName().equals("search") && event.getFocusedOption().getName().equals("artist")) {
-            List<Command.Choice> options = artistRepository.findAll().stream()
+            var options = artistRepository.findAll().stream()
                     .filter(artist -> artist.getName().startsWith(event.getFocusedOption().getValue())) // only display words that start with the user's current input
                     .map(artist -> new Command.Choice(artist.getName(), artist.getName())) // map the words to choices
                             .toList();
@@ -31,7 +31,7 @@ public class AutoCompleteBot extends ListenerAdapter {
         }
 
         if (event.getName().equals("search") && event.getFocusedOption().getName().equals("songname")) {
-            List<Command.Choice> options = trackRepository.findAll().stream()
+            var options = trackRepository.findAll().stream()
                     .filter(artistTrack -> artistTrack.getArtists().stream()
                             .anyMatch(artist -> artist.getName().contains(event.getOptions().getFirst().getAsString())))
                     .filter(track -> track.getName().startsWith(event.getFocusedOption().getValue()))

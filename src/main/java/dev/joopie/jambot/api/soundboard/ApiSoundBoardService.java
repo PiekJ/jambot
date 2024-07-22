@@ -25,11 +25,11 @@ public class ApiSoundBoardService {
     private final ObjectMapper objectMapper;
 
     public List<SoundAuthorDto> fetchSoundBoardSounds() {
-        final HttpUriRequest request = RequestBuilder.get(properties.getFilesUrl())
+        final var request = RequestBuilder.get(properties.getFilesUrl())
                 .build();
 
-        try (final CloseableHttpClient client = HttpClients.createDefault();
-             final CloseableHttpResponse response = client.execute(request)) {
+        try (final var client = HttpClients.createDefault();
+             final var response = client.execute(request)) {
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
                 return Optional.ofNullable(response.getEntity())
@@ -56,9 +56,9 @@ public class ApiSoundBoardService {
     }
 
     private List<SoundAuthorDto> mapFilesResponseItemsToSoundAuthors(final List<FilesResponse.Item> items) {
-        final HashMap<String,List<SoundAuthorDto.Sound>> soundMap = new HashMap<>();
-        for (final FilesResponse.Item item : items) {
-            final SoundAuthorDto.Sound sound = SoundAuthorDto.Sound.builder()
+        final var soundMap = new HashMap<String, List<SoundAuthorDto.Sound>>();
+        for (final var item : items) {
+            final var sound = SoundAuthorDto.Sound.builder()
                     .file(formatSoundFile(item.getName()))
                     .title(item.getTitle())
                     .build();
@@ -84,8 +84,8 @@ public class ApiSoundBoardService {
         if (input == null || input.isEmpty()) {
             return input;
         }
-        final StringBuilder result = new StringBuilder(input);
-        for (int i = input.length() - 1; i >= 0; i--) {
+        final var result = new StringBuilder(input);
+        for (var i = input.length() - 1; i >= 0; i--) {
             if (VALUES.indexOf(input.charAt(i)) != -1) {
                 result.replace(i, i + 1,
                         "%" + Integer.toHexString(input.charAt(i)).toUpperCase());

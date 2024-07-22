@@ -24,11 +24,10 @@ public enum AlbumType {
     }
 
     static {
-        AlbumType[] var0 = values();
-        int var1 = var0.length;
+        var var0 = values();
+        var var1 = var0.length;
 
-        for (int var2 = 0; var2 < var1; ++var2) {
-            AlbumType albumType = var0[var2];
+        for (AlbumType albumType : var0) {
             map.put(albumType.type, albumType);
         }
 

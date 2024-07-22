@@ -70,7 +70,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
     @Transactional
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
-        final OptionMapping inputOption = event.getOption(COMMAND_OPTION_INPUT_NAME);
+        final var inputOption = event.getOption(COMMAND_OPTION_INPUT_NAME);
 
         if (Objects.isNull(inputOption)) {
             return event.reply("U whut m8, provide a track url or search term.")
@@ -81,13 +81,13 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         event.deferReply().queue();
 
         try {
-            final String input = inputOption.getAsString();
+            final var input = inputOption.getAsString();
 
             if (!URL_PATTERN.matcher(input).matches()) {
                 return event.getHook().sendMessage("In order to use this command, a link must be provided. If you want to search for music please use our `/search` command")
                         .setEphemeral(true);
             }
-            String videoId = Strings.EMPTY;
+            var videoId = Strings.EMPTY;
 
             if (input.contains(SPOTIFY_URL)) {
                 videoId = handleSpotifyLink(input);
@@ -129,7 +129,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
 
     private String handleSpotifyLink(String input) {
         if (input.contains("track")) {
-            final Optional<Track> spotifyResult = searchService.getTrack(input);
+            final var spotifyResult = searchService.getTrack(input);
             return spotifyResult.map(searchService::performYoutubeSearch).orElse(null);
         }
 

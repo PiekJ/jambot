@@ -1,7 +1,6 @@
 package dev.joopie.jambot.api.youtube;
 
 import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonDeserializer;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -15,7 +14,7 @@ public class IdDeserializer extends JsonDeserializer<SearchResponse.Item.Id> {
             throws IOException {
         JsonNode node = p.getCodec().readTree(p);
 
-        SearchResponse.Item.Id id = new SearchResponse.Item.Id();
+        var id = new SearchResponse.Item.Id();
         if (node.isObject()) {
             id.setKind(node.get("kind").asText());
             id.setVideoId(node.get("videoId").asText());

@@ -38,15 +38,15 @@ public class ApiYouTubeService {
     private final TrackSourceService trackSourceService;
 
     public SearchResultDto searchForSong(final String input, final Duration minDuration, final Duration maxDuration, final List<String> artistNames) {
-        String encodedInput = URLEncoder.encode(input, StandardCharsets.UTF_8);
-        String url = String.format(SEARCH_URL, encodedInput, properties.getToken());
+        var encodedInput = URLEncoder.encode(input, StandardCharsets.UTF_8);
+        var url = String.format(SEARCH_URL, encodedInput, properties.getToken());
 
         try (var client = HttpClients.createDefault();
              var response = client.execute(RequestBuilder.get(url).build())) {
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                List<String> videoIds = getVideoIdsFromResponse(response.getEntity());
-                List<SearchResultDto> filteredVideos = getFilteredVideos(videoIds, minDuration, maxDuration, artistNames);
+                var videoIds = getVideoIdsFromResponse(response.getEntity());
+                var filteredVideos = getFilteredVideos(videoIds, minDuration, maxDuration, artistNames);
 
                 return filteredVideos.stream().findFirst()
                         .orElse(SearchResultDto.builder().found(false).build());
@@ -61,7 +61,7 @@ public class ApiYouTubeService {
     }
 
     private List<String> getVideoIdsFromResponse(HttpEntity entity) throws IOException {
-        SearchResponse response = parseResponse(entity, SearchResponse.class);
+        var response = parseResponse(entity, SearchResponse.class);
         return Optional.ofNullable(response)
                 .map(SearchResponse::getItems)
                 .orElse(List.of())
@@ -73,14 +73,14 @@ public class ApiYouTubeService {
     }
 
     private List<SearchResultDto> getFilteredVideos(List<String> videoIds, Duration minDuration, Duration maxDuration, List<String> artistNames) throws IOException {
-        String url = String.format(VIDEO_DETAILS_URL, String.join(",", videoIds), properties.getToken());
+        var url = String.format(VIDEO_DETAILS_URL, String.join(",", videoIds), properties.getToken());
         try (var client = HttpClients.createDefault();
              var response = client.execute(RequestBuilder.get(url).build())) {
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
-                List<SearchResponse.Item> items = getVideoDetailsFromResponse(response.getEntity());
+                var items = getVideoDetailsFromResponse(response.getEntity());
 
-                List<SearchResultDto> matchingChannels = items.stream()
+                var matchingChannels = items.stream()
                         .filter(item -> artistNames.stream().anyMatch(artist -> item.getSnippet().getChannelTitle().toLowerCase().contains(artist.toLowerCase())))
                         .map(this::mapItemToSearchResult)
                         .toList();
@@ -91,12 +91,12 @@ public class ApiYouTubeService {
 
                 return items.stream()
                         .filter(item -> {
-                            Duration videoDuration = parseDuration(item.getContentDetails().getDuration());
+                            var videoDuration = parseDuration(item.getContentDetails().getDuration());
                             return videoDuration.compareTo(minDuration) >= 0 && videoDuration.compareTo(maxDuration) <= 0;
                         })
                         .sorted((item1, item2) -> {
-                            Duration duration1 = parseDuration(item1.getContentDetails().getDuration());
-                            Duration duration2 = parseDuration(item2.getContentDetails().getDuration());
+                            var duration1 = parseDuration(item1.getContentDetails().getDuration());
+                            var duration2 = parseDuration(item2.getContentDetails().getDuration());
                             return Long.compare(Math.abs(duration1.minus(minDuration).getSeconds()), Math.abs(duration2.minus(minDuration).getSeconds()));
                         })
                         .map(this::mapItemToSearchResult)
@@ -110,17 +110,17 @@ public class ApiYouTubeService {
     }
 
     private List<SearchResponse.Item> getVideoDetailsFromResponse(HttpEntity entity) throws IOException {
-        SearchResponse response = parseResponse(entity, SearchResponse.class);
+        var response = parseResponse(entity, SearchResponse.class);
         return Optional.ofNullable(response)
                 .map(SearchResponse::getItems)
                 .orElse(List.of());
     }
 
     private <T> T parseResponse(HttpEntity entity, Class<T> valueType) throws IOException {
-        try (InputStream content = getDecompressedInputStream(entity);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(content, StandardCharsets.UTF_8))) {
+        try (var content = getDecompressedInputStream(entity);
+             var reader = new BufferedReader(new InputStreamReader(content, StandardCharsets.UTF_8))) {
 
-            StringBuilder responseContent = new StringBuilder();
+            var responseContent = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null) {
                 responseContent.append(line);
@@ -134,7 +134,7 @@ public class ApiYouTubeService {
     }
 
     private InputStream getDecompressedInputStream(HttpEntity entity) throws IOException {
-        InputStream inputStream = entity.getContent();
+        var inputStream = entity.getContent();
         if (entity.getContentEncoding() != null && "gzip".equalsIgnoreCase(entity.getContentEncoding().getValue())) {
             return new GZIPInputStream(inputStream);
         }

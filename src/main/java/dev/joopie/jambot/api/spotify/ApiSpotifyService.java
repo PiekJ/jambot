@@ -37,11 +37,11 @@ public class ApiSpotifyService {
                 .setClientSecret(properties.getClientSecret())
                 .build();
 
-        final ClientCredentialsRequest clientCredentialsRequest = spotifyApi.clientCredentials()
+        final var clientCredentialsRequest = spotifyApi.clientCredentials()
                 .build();
 
         try {
-            final ClientCredentials clientCredentials = clientCredentialsRequest.execute();
+            final var clientCredentials = clientCredentialsRequest.execute();
             spotifyApi.setAccessToken(clientCredentials.getAccessToken());
             tokenExpireDate = LocalDateTime.now().plusSeconds(clientCredentials.getExpiresIn());
 
@@ -56,15 +56,15 @@ public class ApiSpotifyService {
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
-        final Optional<String> trackId = getSpotifyIdFromLink(link);
+        final var trackId = getSpotifyIdFromLink(link);
 
         if (trackId.isEmpty()) {
             return Optional.empty();
         }
-        final GetTrackRequest getTrackRequest = spotifyApi.getTrack(trackId.get()).build();
+        final var getTrackRequest = spotifyApi.getTrack(trackId.get()).build();
 
         try {
-            final se.michaelthelin.spotify.model_objects.specification.Track apiTrack = getTrackRequest.execute();
+            final var apiTrack = getTrackRequest.execute();
 
             if (apiTrack != null) {
                return Optional.of(spotifyAPIConverterService.saveAPIResult(apiTrack));
@@ -81,9 +81,9 @@ public class ApiSpotifyService {
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
-        final String searchQuery = String.format("%s - %s", artistName, trackName);
+        final var searchQuery = String.format("%s - %s", artistName, trackName);
         try {
-            List<se.michaelthelin.spotify.model_objects.specification.Track> searchResult =
+            var searchResult =
                     Arrays.stream(spotifyApi.searchTracks(searchQuery).build().execute().getItems())
                             .filter(track -> Arrays.stream(track.getArtists())
                                     .anyMatch(artist -> artist.getName().toLowerCase().contains(artistName.toLowerCase())))

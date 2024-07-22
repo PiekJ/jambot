@@ -25,7 +25,7 @@ public class SearchService {
 
     public String performYoutubeSearch(Track track) {
         if (track.getTrackSources() == null || track.getTrackSources().isEmpty() ||  track.getTrackSources().stream().allMatch(TrackSource::isRejected)) {
-            TrackSource trackSource = new TrackSource();
+            var trackSource = new TrackSource();
             trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), Duration.ofMillis(track.getDuration().longValue()).minusSeconds(SECONDS_OFFSET), Duration.ofMillis(track.getDuration().longValue()).plusSeconds(SECONDS_OFFSET), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
             trackSource.setSpotifyId(track.getExternalId());
             trackSource.setTrack(track);

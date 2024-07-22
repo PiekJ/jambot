@@ -10,7 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class LavaPlayerConfig {
     @Bean
     public AudioPlayerManager audioPlayerManager() {
-        final DefaultAudioPlayerManager playerManager = new DefaultAudioPlayerManager();
+        final var playerManager = new DefaultAudioPlayerManager();
         AudioSourceManagers.registerRemoteSources(playerManager, com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager.class);
         playerManager.registerSourceManager(new dev.lavalink.youtube.YoutubeAudioSourceManager(false, true, false));
         return playerManager;

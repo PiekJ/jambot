@@ -60,14 +60,14 @@ public class RemoveCommandHandler implements CommandHandler, CommandAutocomplete
 
     @Override
     public RestAction<?> handle(CommandInteraction event) {
-        final OptionMapping trackNumberOption = event.getOption(COMMAND_OPTION_TRACK_NUMBER);
+        final var trackNumberOption = event.getOption(COMMAND_OPTION_TRACK_NUMBER);
         if (Objects.isNull(trackNumberOption)) {
             return event.reply("How did you manage to not provide a track number?!")
                     .setEphemeral(true);
         }
 
         try {
-            final int trackIndex = trackNumberOption.getAsInt() - 1;
+            final var trackIndex = trackNumberOption.getAsInt() - 1;
 
             musicService.remove(event.getMember(), trackIndex);
 
@@ -82,8 +82,8 @@ public class RemoveCommandHandler implements CommandHandler, CommandAutocomplete
     }
 
     private List<Command.Choice> autocompleteOptionTrackNumber(final Guild guild, final String searchText) {
-        final String searchTextLowerCase = searchText.toLowerCase();
-        final int possibleTrackNumber = tryParseInt(searchText);
+        final var searchTextLowerCase = searchText.toLowerCase();
+        final var possibleTrackNumber = tryParseInt(searchText);
         return musicService.getQueuedAudioTracks(guild).stream()
                 .skip(SKIP_CURRENT_PLAYING_FROM_QUEUE)
                 .filter(dto -> dto.getIndex() == possibleTrackNumber
