@@ -17,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
@@ -81,15 +82,13 @@ public class ApiSpotifyService {
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
-        final var searchQuery = String.format("%s - %s", artistName, trackName);
+        final var searchQuery = "%s - %s".formatted(artistName, trackName);
         try {
-            var searchResult =
-                    Arrays.stream(spotifyApi.searchTracks(searchQuery).build().execute().getItems())
+            return Arrays.stream(spotifyApi.searchTracks(searchQuery).build().execute().getItems())
                             .filter(track -> Arrays.stream(track.getArtists())
                                     .anyMatch(artist -> artist.getName().toLowerCase().contains(artistName.toLowerCase())))
-                            .toList();
-
-            return searchResult.isEmpty() ? Optional.empty() : Optional.of(spotifyAPIConverterService.saveAPIResult(searchResult.getFirst()));
+                            .findFirst()
+                            .map(spotifyAPIConverterService::saveAPIResult);
 
         } catch (IOException | SpotifyWebApiException | ParseException e) {
             log.error("Error while fetching the Spotify API", e);
@@ -100,12 +99,13 @@ public class ApiSpotifyService {
 
 
     private Optional<String> getSpotifyIdFromLink(String link) {
-        return Optional.of(SPOTIFY_URL_PATTERN.matcher(link))
-                .flatMap(matcher -> matcher.find() ? Optional.of(matcher.group(2)) : Optional.empty())
-                .or(() -> {
-                    log.debug("No ID found in the link.");
-                    return Optional.empty();
-                });
+            var matcher = SPOTIFY_URL_PATTERN.matcher(link);
+            if (matcher.find()) {
+                return Optional.of(matcher.group(2));
+            } else {
+                log.debug("No ID found in the link.");
+                return Optional.empty();
+            }
     }
 
     private boolean isAccessTokenExpired() {

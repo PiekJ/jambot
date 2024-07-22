@@ -45,7 +45,7 @@ public class Track extends BaseModel {
     private List<TrackSource> trackSources;
 
     public String getFormattedTrack() {
-        return String.format("%s-%s",
+        return "%s-%s".formatted(
                 getArtists().stream()
                         .map(Artist::getName)
                         .collect(Collectors.joining(",")),

@@ -7,12 +7,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.client.HttpClients;
+import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.http.client.config.RequestConfig;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +23,6 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.zip.GZIPInputStream;
 
 @Slf4j
 @Service
@@ -39,9 +41,9 @@ public class ApiYouTubeService {
 
     public SearchResultDto searchForSong(final String input, final Duration minDuration, final Duration maxDuration, final List<String> artistNames) {
         var encodedInput = URLEncoder.encode(input, StandardCharsets.UTF_8);
-        var url = String.format(SEARCH_URL, encodedInput, properties.getToken());
+        var url = SEARCH_URL.formatted(encodedInput, properties.getToken());
 
-        try (var client = HttpClients.createDefault();
+        try (var client = createHttpClient();
              var response = client.execute(RequestBuilder.get(url).build())) {
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -60,6 +62,15 @@ public class ApiYouTubeService {
         return SearchResultDto.builder().found(false).build();
     }
 
+    private CloseableHttpClient createHttpClient() {
+        return HttpClientBuilder.create()
+                .setRedirectStrategy(new LaxRedirectStrategy())
+                .setDefaultRequestConfig(RequestConfig.custom()
+                        .setContentCompressionEnabled(true)
+                        .build())
+                .build();
+    }
+
     private List<String> getVideoIdsFromResponse(HttpEntity entity) throws IOException {
         var response = parseResponse(entity, SearchResponse.class);
         return Optional.ofNullable(response)
@@ -73,8 +84,8 @@ public class ApiYouTubeService {
     }
 
     private List<SearchResultDto> getFilteredVideos(List<String> videoIds, Duration minDuration, Duration maxDuration, List<String> artistNames) throws IOException {
-        var url = String.format(VIDEO_DETAILS_URL, String.join(",", videoIds), properties.getToken());
-        try (var client = HttpClients.createDefault();
+        var url = VIDEO_DETAILS_URL.formatted(String.join(",", videoIds), properties.getToken());
+        try (var client = createHttpClient();
              var response = client.execute(RequestBuilder.get(url).build())) {
 
             if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
@@ -117,28 +128,17 @@ public class ApiYouTubeService {
     }
 
     private <T> T parseResponse(HttpEntity entity, Class<T> valueType) throws IOException {
-        try (var content = getDecompressedInputStream(entity);
-             var reader = new BufferedReader(new InputStreamReader(content, StandardCharsets.UTF_8))) {
-
+        try (var content = new BufferedReader(new InputStreamReader(entity.getContent(), StandardCharsets.UTF_8))) {
             var responseContent = new StringBuilder();
             String line;
-            while ((line = reader.readLine()) != null) {
+            while ((line = content.readLine()) != null) {
                 responseContent.append(line);
             }
-
             return objectMapper.readValue(responseContent.toString(), valueType);
         } catch (IOException e) {
             log.error("Error parsing response", e);
             throw e;
         }
-    }
-
-    private InputStream getDecompressedInputStream(HttpEntity entity) throws IOException {
-        var inputStream = entity.getContent();
-        if (entity.getContentEncoding() != null && "gzip".equalsIgnoreCase(entity.getContentEncoding().getValue())) {
-            return new GZIPInputStream(inputStream);
-        }
-        return inputStream;
     }
 
     private Duration parseDuration(String isoDuration) {
