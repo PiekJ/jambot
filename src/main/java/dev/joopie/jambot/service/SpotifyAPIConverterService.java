@@ -5,7 +5,6 @@ import dev.joopie.jambot.model.AlbumTrack;
 import dev.joopie.jambot.model.Artist;
 import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.model.album.Album;
-import dev.joopie.jambot.model.album.AlbumGroup;
 import dev.joopie.jambot.model.album.AlbumType;
 import dev.joopie.jambot.repository.album.AlbumRepository;
 import dev.joopie.jambot.repository.album.AlbumTrackRepository;
@@ -21,7 +20,6 @@ import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -83,15 +81,18 @@ public class SpotifyAPIConverterService {
     }
 
     private Album mapAndSaveAlbum(AlbumSimplified albumSimplified) throws ValidationException {
-        return albumRepository.findByExternalId(albumSimplified.getId()).orElseGet(() -> {
+        var dbAlbum = albumRepository.findByExternalId(albumSimplified.getId());
+        if (dbAlbum.isPresent()) {
+            return dbAlbum.get();
+        } else {
             var album = new Album();
             album.setName(albumSimplified.getName());
             album.setArtists(mapAndSaveArtists(albumSimplified.getArtists()));
-            album.setAlbumGroup(albumSimplified.getAlbumGroup() != null ? AlbumGroup.keyOf(albumSimplified.getAlbumGroup().group) : null);
+            //album.setAlbumGroup(albumSimplified.getAlbumGroup() != null ? AlbumGroup.keyOf(albumSimplified.getAlbumGroup().group) : null);
             album.setAlbumType(albumSimplified.getAlbumType() != null ? AlbumType.keyOf(albumSimplified.getAlbumType().type) : null);
             album.setExternalId(albumSimplified.getId());
             return albumRepository.save(album);
-        });
+        }
     }
 
     private List<Artist> mapAndSaveArtists(ArtistSimplified[] artistSimplifieds) throws ValidationException {

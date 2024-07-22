@@ -15,4 +15,8 @@ public class TrackService {
     public Optional<Track> findByExternalId(String externalId) {
         return trackRepository.findByExternalId(externalId);
     }
+
+    public Optional<Track> findByNameAndArtistsName(String trackname, String artistName) {
+        return trackRepository.findByNameAndArtistsName(trackname, artistName);
+    }
 }

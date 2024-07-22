@@ -3,6 +3,9 @@ package dev.joopie.jambot.model.album;
 import dev.joopie.jambot.model.Artist;
 import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.model.base.BaseModel;
+import jakarta.persistence.Column;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -22,7 +25,9 @@ public class Album extends BaseModel {
     public static final String EXTERNALID_FIELD = "external_id";
 
     private String name;
+    @Enumerated(EnumType.STRING)
     private AlbumGroup albumGroup;
+    @Enumerated(EnumType.STRING)
     private AlbumType albumType;
     private String externalId;
 

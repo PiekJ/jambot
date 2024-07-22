@@ -1,15 +1,18 @@
 package dev.joopie.jambot.model.album;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public enum AlbumType {
     ALBUM("album"),
     COMPILATION("compilation"),
     SINGLE("single");
 
-    private static final Map<String, AlbumType> map = new HashMap<>();
-    public final String type;
+    private static Map<String, AlbumType> map;
+    private final String type;
 
     AlbumType(String type) {
         this.type = type;
@@ -24,12 +27,7 @@ public enum AlbumType {
     }
 
     static {
-        var var0 = values();
-        var var1 = var0.length;
-
-        for (AlbumType albumType : var0) {
-            map.put(albumType.type, albumType);
-        }
-
+        map = Arrays.stream(values())
+                .collect(Collectors.toMap(x -> x.type, Function.identity()));
     }
 }

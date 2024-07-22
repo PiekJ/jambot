@@ -21,6 +21,7 @@ public class SearchService {
     private final TrackSourceService trackSourceService;
 
     private final ApiYouTubeService apiYouTubeService;
+    private final TrackService trackService;
 
 
     public String performYoutubeSearch(Track track) {
@@ -37,10 +38,17 @@ public class SearchService {
     }
 
     public String performSpotifyAndYoutubeSearch(String artist, String trackname) {
-        return apiSpotifyService.searchForTrack(artist, trackname)
-                .filter(t -> !t.getTrackSources().isEmpty() && t.getTrackSources().stream().noneMatch(TrackSource::isRejected))
-                .map(t -> t.getTrackSources().stream().filter(TrackSource::isRejected).map(TrackSource::getYoutubeId).findFirst().orElseGet(() -> performYoutubeSearch(t)))
-                .orElse(Strings.EMPTY);
+        final var track = trackService.findByNameAndArtistsName(trackname, artist);
+        if (track.isPresent() && track.get().getTrackSources() != null && !track.get().getTrackSources().stream().allMatch(TrackSource::isRejected)) {
+            return track.get().getTrackSources().stream().filter(source -> !source.isRejected()).findFirst().get().getYoutubeId();
+        }
+
+        final var spotifyTrack = apiSpotifyService.searchForTrack(artist, trackname);
+        if (spotifyTrack.isPresent() && (spotifyTrack.get().getTrackSources() == null || spotifyTrack.get().getTrackSources().isEmpty() || spotifyTrack.get().getTrackSources().stream().allMatch(TrackSource::isRejected))) {
+            return performYoutubeSearch(spotifyTrack.get());
+        } else {
+            return spotifyTrack.get().getTrackSources().stream().filter(trackSource -> !trackSource.isRejected()).findFirst().map(TrackSource::getYoutubeId).orElseGet(() -> Strings.EMPTY);
+        }
     }
 
     public Optional<Track> getTrack(String input) {

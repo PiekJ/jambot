@@ -2,7 +2,6 @@ package dev.joopie.jambot.music.command;
 
 import dev.joopie.jambot.api.youtube.JambotYouTubeException;
 import dev.joopie.jambot.command.CommandHandler;
-import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.music.GuildMusicService;
 import dev.joopie.jambot.music.JambotMusicPlayerException;
 import dev.joopie.jambot.music.JambotMusicServiceException;
@@ -15,7 +14,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -27,7 +25,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Component
@@ -36,16 +33,20 @@ import java.util.regex.Pattern;
 public class PlayCommandHandler extends ListenerAdapter implements CommandHandler {
     private static final String COMMAND_NAME = "play";
     private static final String COMMAND_OPTION_INPUT_NAME = "input";
-    private static final String SPOTIFY_URL = "spotify";
-    private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
-    public static final Pattern URL_PATTERN = Pattern.compile("^(http(|s)://.*)$");
-    public static final int SECONDS_OFFSET = 15;
+    private static final String SPOTIFY = "spotify";
     private static final String YOUTUBE_URL = "https://www.youtube.com/watch?v=";
+    private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
+    private static final Pattern URL_PATTERN = Pattern.compile("^(http(|s)://.*)$");
+    private static final Pattern YOU_TUBE_URL_PATTERN = Pattern.compile("^(https?)?(://)?(www\\.)?(m\\.)?((youtube\\.com)|(youtu\\.be))/");
+    private static final Pattern[] VIDEO_ID_PATTERNS = {
+            Pattern.compile("\\?vi?=([^&]*)"),
+            Pattern.compile("watch\\?.*v=([^&]*)"),
+            Pattern.compile("(?:embed|vi?)/([^/?]*)"),
+            Pattern.compile("^([A-Za-z0-9\\-]*)")
+    };
 
     private final GuildMusicService musicService;
-
     private final SearchService searchService;
-
 
     @Override
     public Command.Type type() {
@@ -77,7 +78,6 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
                     .setEphemeral(true);
         }
 
-
         event.deferReply().queue();
 
         try {
@@ -87,19 +87,15 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
                 return event.getHook().sendMessage("In order to use this command, a link must be provided. If you want to search for music please use our `/search` command")
                         .setEphemeral(true);
             }
-            var videoId = Strings.EMPTY;
 
-            if (input.contains(SPOTIFY_URL)) {
-                videoId = handleSpotifyLink(input);
-            } else if (URL_OR_ID_PATTERN.matcher(input).matches()) {
-                videoId = input;
+            if (input.contains(SPOTIFY)) {
+                return handlePlayWithInteractions(event, handleSpotifyLink(input));
+            } else if (input.contains("youtube") || input.contains("youtu.be")){
+                return handlePlay(event, extractYouTubeVideoId(input));
+            } else {
+                return handlePlay(event, input);
             }
 
-            if (Strings.isEmpty(videoId)) {
-                return event.getHook().sendMessage("Unfortunately we did not find any results!");
-            }
-
-            return handlePlay(event, videoId);
 
         } catch (JambotMusicServiceException | JambotMusicPlayerException | JambotYouTubeException exception) {
             return event.getHook().sendMessage(exception.getMessage())
@@ -107,25 +103,29 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         }
     }
 
-    public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, String videoId) {
+    public WebhookMessageCreateAction<Message> handlePlayWithInteractions(CommandInteraction event, String videoId) {
         musicService.play(event.getMember(), videoId);
-        String parsedVideoId;
-        if (URL_PATTERN.matcher(videoId).matches()) {
-            parsedVideoId = videoId;
-        } else {
-            parsedVideoId = YOUTUBE_URL + videoId;
-        }
+        var parsedVideoId = YOUTUBE_URL + videoId;
+            // Create and send the message with buttons
+            return event.getHook().sendMessage(
+                            "**Track added!**%n%n OK, we added the track to the queue! In order to improve our service we would like%n to ask you to rate our search result.%n%n Please let us know :thumbsup_tone3: or :thumbsdown_tone3: if we got the correct result for you.%n%n %s".formatted(parsedVideoId))
+                    .addActionRow(
+                            Button.success("accept", "Accept").withEmoji(Emoji.fromUnicode("U+1F44D U+1F3FD")),
+                            Button.danger("reject", "Reject").withEmoji(Emoji.fromUnicode("U+1F44E U+1F3FD"))
+                    );
 
-        // Create and send the message with buttons
-        return event.getHook().sendMessage(
-                    "**Track added!**%n%n OK, we added the track to the queue! In order to improve our service we would like%n to ask you to rate our search result.%n%n Please let us know :thumbsup_tone3: or :thumbsdown_tone3: if we got the correct result for you.%n%n %s".formatted(parsedVideoId))
-                .addActionRow(
-                        Button.success("accept", "Accept").withEmoji(Emoji.fromUnicode("U+1F44D U+1F3FD")),
-                        Button.danger("reject", "Reject").withEmoji(Emoji.fromUnicode("U+1F44E U+1F3FD"))
-                );
-        
     }
 
+    public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, String videoId) {
+        var mediaUrl = videoId;
+        if (videoId.length() == 11) {
+            mediaUrl = YOUTUBE_URL + videoId;
+        }
+        musicService.play(event.getMember(), videoId);
+        return event.getHook().sendMessage(
+                        "**Track added!**%n%n OK, we added the track to the queue! %s".formatted(mediaUrl));
+
+    }
 
     private String handleSpotifyLink(String input) {
         if (input.contains("track")) {
@@ -134,5 +134,28 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         }
 
         return Strings.EMPTY;
+    }
+
+    private String extractYouTubeVideoId(String url) {
+        var youTubeLinkWithoutProtocolAndDomain = removeProtocolAndDomain(url);
+
+        for (var pattern : VIDEO_ID_PATTERNS) {
+            var matcher = pattern.matcher(youTubeLinkWithoutProtocolAndDomain);
+
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        }
+
+        return null;
+    }
+
+    private String removeProtocolAndDomain(String url) {
+        var matcher = YOU_TUBE_URL_PATTERN.matcher(url);
+
+        if (matcher.find()) {
+            return url.replace(matcher.group(), "");
+        }
+        return url;
     }
 }
