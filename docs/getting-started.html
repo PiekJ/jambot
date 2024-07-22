@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="h-500">
+<html lang="en" class="h-500" xmlns="http://www.w3.org/1999/html">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -29,7 +29,8 @@
                 <h4>Development and selfhosting</h4>
                 <p class="fw-bold">Selfhosting as a server owner</p>
                 If you&#39;re a server owner and are considering selfhosting keep in mind that we recommend <a
-                target="_blank" href="https://discord.com/api/oauth2/authorize?client_id=888104841887506542&permissions=36718592&scope=applications.commands%20bot">using
+                    target="_blank"
+                    href="https://discord.com/api/oauth2/authorize?client_id=888104841887506542&permissions=36718592&scope=applications.commands%20bot">using
                 the bot that we host</a>.
                 The reason for this is that selfhosting only has minor upsides and that we don&#39;t offer support to
                 selfhosters. </p>
@@ -46,32 +47,54 @@
             </div>
 
             <div class="mb-lg-5">
+                <h4>Database</h4>
+                <p> Our bot is using MariaDB by default. Make sure to get it installed on your local development
+                    machine. <a href="https://mariadb.org/download/?t=mariadb&p=mariadb&r=11.4.2">Download the server
+                        here</a> to get started. Make sure you create a database called <code>jambot</code> when you
+                    first start the application. In order to start the application, insert the following into your
+                    <code>application-local.properties</code> file if this not exists already. Provide the right <code>USERNAME</code>
+                    and <code>PASSWORD</code> for your database server in both the JDBC driver as the Liquibase config.
+                </p>
+                <script src="https://pastebin.com/embed_js/xKeKMmxe?theme=dark"></script>
+                <br/>
+                <h5>Using another Database Server</h5>
+                <p>You can use other database server while developing on Jambot. We have created different Maven
+                    profiles for MySQL and PostgreSQL to include the right dependencies. Note that the maintainers are
+                    using MariaDB for production and local development. Ensure that you are providing the right JDBC
+                    driver url to manage the connection with the database.</p>
+            </div>
+
+            <div class="mb-lg-5">
                 <h4>Getting API keys</h4>
                 <p>In order to make the bot work you need to have some API keys to your add to your project. You can
                     specify those in your own <code>application-local.properties</code> file. If this file does not
                     exist, create it first by copying the content of the original file to your new local file. Make sure
                     to
                     run your Spring Boot project with the active profile <code>local</code>. Otherwise, the original
-                    <code>application.properties</code> will be used at the startup.</code></p>
+                    <code>application.properties</code> will be used at the startup. With using the local.properties
+                    file, you make sure that keys are not getting pushed to Github.</p>
             </div>
 
             <div class="mb-lg-5">
                 <h5>Discord</h5>
                 <ol>
-                    <li>Go to the <a target="_blank" href="https://discord.com/developers/applications">Discord Developers Portal</a>
+                    <li>Go to the <a target="_blank" href="https://discord.com/developers/applications">Discord
+                        Developers Portal</a>
                     </li>
                     <li>Create a bot and enter your token into the config file under <code>jda.token</code></li>
                 </ol>
                 <h5>Youtube</h5>
                 <ol>
-                    <li>Go to the <a target="_blank" href="https://console.cloud.google.com/apis/credentials">Google Cloud Portal</a>
+                    <li>Go to the <a target="_blank" href="https://console.cloud.google.com/apis/credentials">Google
+                        Cloud Portal</a>
                     </li>
                     <li>Create a application and enter your API key into the config file under <code>youtube.key</code>
                     </li>
                 </ol>
                 <h5>Spotify</h5>
                 <ol>
-                    <li>Go to the <a target="_blank" href="https://developer.spotify.com/dashboard/applications">Spotify Developer
+                    <li>Go to the <a target="_blank" href="https://developer.spotify.com/dashboard/applications">Spotify
+                        Developer
                         dashboard</a>
                     </li>
                     <li>Create an app and enter both the ID and the secret into the config file under <code>spotify.clientId</code>
@@ -93,17 +116,41 @@
                 <h4>Create a Discord Server</h4>
                 <p>In order to test your bot you need to create a Discord Server. After you have created a server, you
                     can add the bot with the <code>OAuth2 > URL Generator</code>. This will give you a URL which will
-                    invite your bot to your newly created server. The <code>Administrator Scope</code> gives you all
-                    the permissions of a Discord Server and is the quickest way to get you up and running.</p>
+                    invite your bot to your newly created server. The bot needs the following scopes to get it working:
+                </p>
+                <ul>
+                    <li><code>bot</code></li>
+                    <li><code>applications.commands</code></li>
+                </ul>
+                <p>The bot also requires the following permissions to be set in the server:</p>
+                <ul>
+                    <li><code>Send Messages</code></li>
+                    <li><code>Embed Links</code></li>
+                    <li><code>Connect</code></li>
+                    <li><code>Speak</code></li>
+                    <li><code>Use Voice Activity</code></li>
+                </ul>
+                <p>To set these permissions, follow these steps:</p>
+                <ol>
+                    <li>Go to your Discord server and click on the server name at the top left.</li>
+                    <li>Select <code>Server Settings</code> from the dropdown menu.</li>
+                    <li>In the sidebar, click on <code>Roles</code> and then select the role assigned to your bot.</li>
+                    <li>Under the <code>Permissions</code> tab, enable the required permissions listed above.</li>
+                    <li>Save the changes by clicking the <code>Save Changes</code> button at the bottom.</li>
+                </ol>
             </div>
+
 
             <div class="mb-lg-5">
                 <h4>Start your application</h4>
-                <p>After the bot has entered the server, and you have started the application you need to use your
-                    <code>app.update-commands-secret</code> in a private DM with your bot  to update the <code>/</code> commands. <b>Note:
+                <p>After the bot has entered the server and you have started the application, you need to use your
+                    <code>app.update-commands-secret</code> in a private DM with your bot to update the <code>/</code>
+                    commands. <b>Note:
                         This will take a while. Application Commands are not immediately available. After a few minutes
                         you should see all the available commands of the Jambot.</b> If you do not see any commands pop
-                    up, please be sure that you provided the right <code>app.admin-user-id</code> and <code>app.update-commands-secret</code>
+                    up, please be sure that you provided the right <code>app.admin-user-id</code> and <code>app.update-commands-secret</code>.
+                    If you have added newly commands, make sure that they do comply with the JDA specifications. This
+                    mean not capital letters as input fields for example.
                 </p>
             </div>
 
