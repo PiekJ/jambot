@@ -20,7 +20,6 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
-import org.apache.http.util.TextUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -92,7 +91,12 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
                 return handlePlayWithInteractions(event, handleSpotifyLink(input));
             } else if (input.contains("youtube") || input.contains("youtu.be")) {
                 var extractedId = extractYouTubeVideoId(input);
-                return handlePlay(event, extractedId != null ? extractedId : Strings.EMPTY);
+
+                if (extractedId == null) {
+                    return event.reply("Couldn't extract youtube video ID from your link.").setEphemeral(true);
+                }
+
+                return handlePlay(event, extractedId);
             } else {
                 return handlePlay(event, input);
             }
@@ -105,8 +109,8 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
     }
 
     public WebhookMessageCreateAction<Message> handlePlayWithInteractions(CommandInteraction event, String videoId) {
-        if (videoId == null || TextUtils.isEmpty(videoId)) {
-            return event.getHook().sendMessage("Whoops! This link got lost in the abyss.").setEphemeral(true);
+        if (Strings.isBlank(videoId)) {
+            return event.getHook().sendMessage("Whoops! This video id got lost in the abyss.").setEphemeral(true);
         }
 
         musicService.play(event.getMember(), videoId);
@@ -118,7 +122,6 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
                             Button.success("accept", "Accept").withEmoji(Emoji.fromUnicode("U+1F44D U+1F3FD")),
                             Button.danger("reject", "Reject").withEmoji(Emoji.fromUnicode("U+1F44E U+1F3FD"))
                     );
-
     }
 
     public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, String videoId) {
