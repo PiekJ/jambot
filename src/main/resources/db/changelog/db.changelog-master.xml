@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.8.xsd">
+
+    <changeSet id="1" author="Carsten Flokstra">
+        <createTable tableName="album">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="album_type" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="album_group" type="varchar(255)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="external_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="album" columnNames="external_id" constraintName="uq_album_external_id"/>
+
+        <createTable tableName="album_artist">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="album_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="artist_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="album_track">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="album_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="track_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="track_number" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="track">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="external_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="duration" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="track" columnNames="external_id" constraintName="uq_track_external_id"/>
+
+        <createTable tableName="track_artist">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="track_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="artist_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="artist">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="external_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="artist" columnNames="external_id" constraintName="uq_artist_external_id"/>
+
+        <addForeignKeyConstraint baseTableName="album_artist"
+                                 baseColumnNames="album_id"
+                                 referencedTableName="album"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_album_artist_album_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="NO ACTION"/>
+
+        <addForeignKeyConstraint baseTableName="album_artist"
+                                 baseColumnNames="artist_id"
+                                 referencedTableName="artist"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_album_artist_artist_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="NO ACTION"/>
+
+        <addForeignKeyConstraint baseTableName="album_track"
+                                 baseColumnNames="album_id"
+                                 referencedTableName="album"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_album_track_album_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="NO ACTION"/>
+
+        <addForeignKeyConstraint baseTableName="album_track"
+                                 baseColumnNames="track_id"
+                                 referencedTableName="track"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_album_track_track_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="NO ACTION"/>
+
+        <addForeignKeyConstraint baseTableName="track_artist"
+                                 baseColumnNames="track_id"
+                                 referencedTableName="track"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_track_artist_track_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="NO ACTION"/>
+
+        <addForeignKeyConstraint baseTableName="track_artist"
+                                 baseColumnNames="artist_id"
+                                 referencedTableName="artist"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_track_artist_artist_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="NO ACTION"/>
+
+        <rollback>
+            <dropTable tableName="album"/>
+            <dropTable tableName="album_artist"/>
+            <dropTable tableName="album_track"/>
+            <dropTable tableName="track"/>
+            <dropTable tableName="track_artist"/>
+            <dropTable tableName="artist"/>
+        </rollback>
+        <createTable tableName="track_source">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="youtube_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="spotify_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="track_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rejected" type="tinyint" defaultValueBoolean="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <rollback>
+            <dropTable tableName="track_source"/>
+        </rollback>
+
+        <addForeignKeyConstraint baseTableName="track_source"
+                                 baseColumnNames="track_id"
+                                 referencedTableName="track"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_track_source_track_id"
+                                 onDelete="CASCADE"
+                                 onUpdate="NO ACTION"/>
+
+        <createIndex tableName="track_source" indexName="idx_track_source">
+            <column name="youtube_id"/>
+            <column name="spotify_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

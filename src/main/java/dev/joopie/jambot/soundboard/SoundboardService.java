@@ -34,7 +34,7 @@ public class SoundboardService {
                         .name(x.getAuthorName())
                         .soundUrls(x.getSounds().stream()
                                 .map(SoundAuthorDto.Sound::getFile)
-                                .collect(Collectors.toList()))
+                                .toList())
                         .build()));
     }
 

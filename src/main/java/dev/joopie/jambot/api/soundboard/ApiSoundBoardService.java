@@ -6,7 +6,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpStatus;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.springframework.stereotype.Service;
 
@@ -82,7 +85,7 @@ public class ApiSoundBoardService {
             return input;
         }
         final var result = new StringBuilder(input);
-        for (int i = input.length() - 1; i >= 0; i--) {
+        for (var i = input.length() - 1; i >= 0; i--) {
             if (VALUES.indexOf(input.charAt(i)) != -1) {
                 result.replace(i, i + 1,
                         "%" + Integer.toHexString(input.charAt(i)).toUpperCase());

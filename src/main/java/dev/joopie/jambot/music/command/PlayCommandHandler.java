@@ -1,49 +1,52 @@
 package dev.joopie.jambot.music.command;
 
-import dev.joopie.jambot.api.spotify.ApiSpotifyService;
-import dev.joopie.jambot.api.youtube.ApiYouTubeService;
-import dev.joopie.jambot.api.youtube.SearchResultDto;
+import dev.joopie.jambot.api.youtube.JambotYouTubeException;
 import dev.joopie.jambot.command.CommandHandler;
+import dev.joopie.jambot.music.GuildMusicService;
 import dev.joopie.jambot.music.JambotMusicPlayerException;
 import dev.joopie.jambot.music.JambotMusicServiceException;
-import dev.joopie.jambot.api.youtube.JambotYouTubeException;
-import dev.joopie.jambot.music.GuildMusicService;
+import dev.joopie.jambot.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
 import net.dv8tion.jda.api.interactions.commands.CommandInteractionPayload;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.*;
-import java.util.*;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.regex.Matcher;
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class PlayCommandHandler implements CommandHandler {
+public class PlayCommandHandler extends ListenerAdapter implements CommandHandler {
     private static final String COMMAND_NAME = "play";
     private static final String COMMAND_OPTION_INPUT_NAME = "input";
-    private static final String SPOTIFY_URL = "spotify";
+    private static final String SPOTIFY = "spotify";
+    private static final String YOUTUBE_URL = "https://www.youtube.com/watch?v=";
     private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
+    private static final Pattern URL_PATTERN = Pattern.compile("^(http(|s)://.*)$");
+    private static final Pattern YOU_TUBE_URL_PATTERN = Pattern.compile("^(https?)?(://)?(www\\.)?(m\\.)?((youtube\\.com)|(youtu\\.be))/");
+    private static final Pattern[] VIDEO_ID_PATTERNS = {
+            Pattern.compile("\\?vi?=([^&]*)"),
+            Pattern.compile("watch\\?.*v=([^&]*)"),
+            Pattern.compile("(?:embed|vi?)/([^/?]*)"),
+            Pattern.compile("^([A-Za-z0-9\\-]*)")
+    };
+
     private final GuildMusicService musicService;
-    private final ApiYouTubeService apiYouTubeService;
-    private final ApiSpotifyService apiSpotifyService;
-    private final boolean isAvailable = false;
+    private final SearchService searchService;
 
     @Override
     public Command.Type type() {
@@ -52,11 +55,11 @@ public class PlayCommandHandler implements CommandHandler {
 
     @Override
     public CommandData registerCommand() {
-        return Commands.slash(COMMAND_NAME, "play a track url or search for one")
+        return Commands.slash(COMMAND_NAME, "Play a track url")
                 .addOption(
                         OptionType.STRING,
                         COMMAND_OPTION_INPUT_NAME,
-                        "YouTube, Soundcloud, Spotify url or search term",
+                        "YouTube, Soundcloud, Spotify url",
                         true);
     }
 
@@ -65,12 +68,13 @@ public class PlayCommandHandler implements CommandHandler {
         return COMMAND_NAME.equals(event.getName());
     }
 
+    @Transactional
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
         final var inputOption = event.getOption(COMMAND_OPTION_INPUT_NAME);
 
         if (Objects.isNull(inputOption)) {
-            return event.reply("U whut m8, provide an track url or search term.")
+            return event.reply("U whut m8, provide a track url or search term.")
                     .setEphemeral(true);
         }
 
@@ -79,15 +83,19 @@ public class PlayCommandHandler implements CommandHandler {
         try {
             final var input = inputOption.getAsString();
 
-            if (input.contains(SPOTIFY_URL)) {
-                return handleSpotifyLink(event, input);
+            if (!URL_PATTERN.matcher(input).matches()) {
+                return event.getHook().sendMessage("In order to use this command, a link must be provided. If you want to search for music please use our `/search` command")
+                        .setEphemeral(true);
             }
 
-            if (URL_OR_ID_PATTERN.matcher(input).matches()) {
-                return handleNormalLink(event, input);
+            if (input.contains(SPOTIFY)) {
+                return handlePlayWithInteractions(event, handleSpotifyLink(input));
+            } else if (input.contains("youtube") || input.contains("youtu.be")){
+                return handlePlay(event, extractYouTubeVideoId(input));
             } else {
-                return handleYoutubeSearch(event, input);
+                return handlePlay(event, input);
             }
+
 
         } catch (JambotMusicServiceException | JambotMusicPlayerException | JambotYouTubeException exception) {
             return event.getHook().sendMessage(exception.getMessage())
@@ -95,69 +103,59 @@ public class PlayCommandHandler implements CommandHandler {
         }
     }
 
-    private WebhookMessageCreateAction<Message> handleYoutubeSearch(CommandInteraction event, String input) {
-        final var dto = apiYouTubeService.searchForSong(input);
-        if (dto.isFound()) {
-            musicService.play(event.getMember(), dto.getVideoId());
+    public WebhookMessageCreateAction<Message> handlePlayWithInteractions(CommandInteraction event, String videoId) {
+        musicService.play(event.getMember(), videoId);
+        var parsedVideoId = YOUTUBE_URL + videoId;
+            // Create and send the message with buttons
+            return event.getHook().sendMessage(
+                            "**Track added!**%n%n OK, we added the track to the queue! In order to improve our service we would like%n to ask you to rate our search result.%n%n Please let us know :thumbsup_tone3: or :thumbsdown_tone3: if we got the correct result for you.%n%n %s".formatted(parsedVideoId))
+                    .addActionRow(
+                            Button.success("accept", "Accept").withEmoji(Emoji.fromUnicode("U+1F44D U+1F3FD")),
+                            Button.danger("reject", "Reject").withEmoji(Emoji.fromUnicode("U+1F44E U+1F3FD"))
+                    );
 
-            return event.getHook()
-                    .sendMessageEmbeds(createMessageEmbedOfSearchTrack(event.getGuild().getName(), dto));
+    }
+
+    public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, String videoId) {
+        var mediaUrl = videoId;
+        if (videoId.length() == 11) {
+            mediaUrl = YOUTUBE_URL + videoId;
         }
-        return event.getHook()
-                .sendMessage("Or the internet is broken, or we did not have Dora the Explorer to help to find the track that you are looking for. No results found for the given search result")
-                .setEphemeral(true);
+        musicService.play(event.getMember(), videoId);
+        return event.getHook().sendMessage(
+                        "**Track added!**%n%n OK, we added the track to the queue! %s".formatted(mediaUrl));
+
     }
 
-
-    private WebhookMessageCreateAction<Message> handleNormalLink(CommandInteraction event, String input) {
-        musicService.play(event.getMember(), input);
-        return event.getHook()
-                .sendMessage("OK, we added the track to the queue! %s".formatted(input));
-    }
-
-
-    private WebhookMessageCreateAction<Message> handleSpotifyLink(CommandInteraction event, String input) {
+    private String handleSpotifyLink(String input) {
         if (input.contains("track")) {
-            final var spotifyResult = apiSpotifyService.getTrack(input);
-            if (spotifyResult.isEmpty()) {
-                return event.getHook()
-                        .sendMessage("That's bad! We could not find anything for the given Spotify link. Did you copy the correct link?")
-                        .setEphemeral(true);
-            }
-            return handleYoutubeSearch(event, spotifyResult.get());
-
-        } else if (input.contains("playlist")) {
-            if (isAvailable) {
-                final var counter = new AtomicInteger(0);
-                apiSpotifyService.getTracksFromPlaylist(input)
-                        .forEach(result -> {
-                            var playlistresult = apiYouTubeService.searchForSong(result);
-
-                            if (playlistresult.isFound()) {
-                                musicService.play(event.getMember(), playlistresult.getVideoId());
-                                counter.getAndIncrement();
-                            }
-                        });
-
-                return event.getHook()
-                        .sendMessage("Imported playlist. Queued %s items!".formatted(counter));
-            } else {
-                return event.getHook()
-                        .sendMessage("The use of Spotify Playlist links is currently not available")
-                        .setEphemeral(true);
-            }
+            final var spotifyResult = searchService.getTrack(input);
+            return spotifyResult.map(searchService::performYoutubeSearch).orElse(null);
         }
-        return event.getHook()
-                .sendMessage("Well this is akward. But I do not know what to do with this Spotify Link")
-                .setEphemeral(true);
+
+        return Strings.EMPTY;
     }
 
-    private static MessageEmbed createMessageEmbedOfSearchTrack(final String guildName, final SearchResultDto dto) {
-        return new EmbedBuilder()
-                .setColor(new Color(0x0099FF))
-                .setTitle("%s Track Queued".formatted(guildName))
-                .setDescription(dto.getTitle())
-                .setImage(dto.getThumbnailUrl())
-                .build();
+    private String extractYouTubeVideoId(String url) {
+        var youTubeLinkWithoutProtocolAndDomain = removeProtocolAndDomain(url);
+
+        for (var pattern : VIDEO_ID_PATTERNS) {
+            var matcher = pattern.matcher(youTubeLinkWithoutProtocolAndDomain);
+
+            if (matcher.find()) {
+                return matcher.group(1);
+            }
+        }
+
+        return null;
+    }
+
+    private String removeProtocolAndDomain(String url) {
+        var matcher = YOU_TUBE_URL_PATTERN.matcher(url);
+
+        if (matcher.find()) {
+            return url.replace(matcher.group(), "");
+        }
+        return url;
     }
 }

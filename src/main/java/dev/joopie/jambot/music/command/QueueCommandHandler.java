@@ -13,9 +13,10 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.springframework.stereotype.Component;
 
-import java.awt.*;
+import java.awt.Color;
 import java.time.Duration;
 import java.time.OffsetDateTime;
+import java.util.List;
 
 @Component
 @RequiredArgsConstructor
@@ -92,10 +93,10 @@ public class QueueCommandHandler implements CommandHandler {
                     .append(stringWithMaxLength(
                             "%02d) %s : %s".formatted(dto.getIndex(), dto.getAuthor(), dto.getTitle()),
                             FIELD_VALUE_MAX_LENGTH))
-                    .append("\r\n");
+                    .append("\r%n");
             trackDurationStringBuilder
                     .append(formatMillisToHumanTime(dto.getDuration()))
-                    .append("\r\n");
+                    .append("\r%n");
         }
 
         builder.addField("Track List", trackNameStringBuilder.toString(), true);

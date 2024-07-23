@@ -9,5 +9,4 @@ public class JambotApplication {
 	public static void main(final String[] args) {
 		SpringApplication.run(JambotApplication.class, args);
 	}
-
 }

@@ -5,6 +5,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
@@ -15,6 +16,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
@@ -136,13 +138,13 @@ public class GuildMusicPlayer {
             return Collections.emptyList();
         }
 
-        final var result = new ArrayList<>(audioTrackQueue);
+        final List<AudioTrack> result = new ArrayList<>(audioTrackQueue);
         result.add(0, audioPlayer.getPlayingTrack());
         return result;
     }
 
     public synchronized void shuffleQueuedAudioTracks() {
-        final var temp = new ArrayList<>(audioTrackQueue);
+        final List<AudioTrack> temp = new ArrayList<>(audioTrackQueue);
         Collections.shuffle(temp);
         audioTrackQueue.clear();
         audioTrackQueue.addAll(temp);
