@@ -82,8 +82,8 @@ public class GuildMusicPlayer {
             return;
         }
 
-        if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData metaData) {
-            createHistoryEntry(metaData.userId(), metaData.guildId(), metaData.mediaId());
+        if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData(String userId, String guildId, String mediaId)) {
+            createHistoryEntry(userId, guildId, mediaId);
         }
 
         cancelLeaveTask();
@@ -110,8 +110,8 @@ public class GuildMusicPlayer {
     public void next() {
         var audioTrack = audioTrackQueue.poll();
         if (audioPlayer.startTrack(audioTrack, false)) {
-            if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData metaData) {
-                createHistoryEntry(metaData.userId(), metaData.guildId(), metaData.mediaId());
+            if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData(String userId, String guildId, String mediaId)) {
+                createHistoryEntry(userId, guildId, mediaId);
             }
             return;
         }
