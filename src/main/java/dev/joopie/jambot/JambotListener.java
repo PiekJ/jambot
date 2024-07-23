@@ -18,7 +18,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.requests.RestAction;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
@@ -45,7 +44,6 @@ public class JambotListener extends ListenerAdapter {
     }
 
     @Override
-    @Transactional
     public void onGuildLeave(@NotNull final GuildLeaveEvent event) {
         playHistoryService.deleteHistoryFromGuild(event.getGuild());
         guildMusicService.destroyGuildMusicService(event.getGuild());

@@ -11,9 +11,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class AudioTrackLoadResultHandler implements AudioLoadResultHandler {
     private final GuildMusicPlayer musicPlayer;
+    private final MetaData metaData;
 
     @Override
     public void trackLoaded(final AudioTrack audioTrack) {
+        audioTrack.setUserData(metaData);
         log.info("Audio track queued `{}}`.", audioTrack.getInfo().title);
         musicPlayer.play(audioTrack);
     }
@@ -37,5 +39,8 @@ public class AudioTrackLoadResultHandler implements AudioLoadResultHandler {
     @Override
     public void loadFailed(final FriendlyException exception) {
         log.warn("We tried our best, but that wasn't enough :(", exception);
+    }
+
+    public record MetaData(String guildId, String userId, String mediaId) {
     }
 }

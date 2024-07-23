@@ -6,5 +6,5 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface PlayHistoryRepository extends ListCrudRepository<PlayHistory, Long> {
-    void deletePlayHistoryByGuildId(String guildId);
+    void deleteByGuildId(String guildId);
 }

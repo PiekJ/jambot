@@ -2,10 +2,13 @@ package dev.joopie.jambot.music;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import dev.joopie.jambot.model.PlayHistory;
+import dev.joopie.jambot.model.TrackSource;
+import dev.joopie.jambot.service.PlayHistoryService;
+import dev.joopie.jambot.service.TrackSourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
@@ -16,7 +19,6 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
@@ -34,6 +36,8 @@ public class GuildMusicPlayer {
     private final BlockingQueue<AudioTrack> audioTrackQueue = new LinkedBlockingQueue<>();
     private final TaskScheduler taskScheduler;
     private final GuildProvider guildProvider;
+    private final TrackSourceService trackSourceService;
+    private final PlayHistoryService playHistoryService;
 
     private ScheduledFuture<?> scheduledLeaveTask;
 
@@ -75,6 +79,11 @@ public class GuildMusicPlayer {
     public void play(final AudioTrack audioTrack) {
         if (!audioPlayer.startTrack(audioTrack, true)) {
             audioTrackQueue.offer(audioTrack);
+            return;
+        }
+
+        if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData metaData) {
+            createHistoryEntry(metaData.userId(), metaData.guildId(), metaData.mediaId());
         }
 
         cancelLeaveTask();
@@ -99,7 +108,11 @@ public class GuildMusicPlayer {
     }
 
     public void next() {
-        if (audioPlayer.startTrack(audioTrackQueue.poll(), false)) {
+        var audioTrack = audioTrackQueue.poll();
+        if (audioPlayer.startTrack(audioTrack, false)) {
+            if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData metaData) {
+                createHistoryEntry(metaData.userId(), metaData.guildId(), metaData.mediaId());
+            }
             return;
         }
 
@@ -261,5 +274,19 @@ public class GuildMusicPlayer {
         return isConnectedToVoiceChannel(guild) &&
                 guild.getAudioManager().getConnectedChannel().getMembers().stream()
                         .anyMatch(member::equals);
+    }
+
+    private void createHistoryEntry(String userId, String guildId, String input) {
+        var trackSource = trackSourceService.findByYoutubeId(input);
+        var track = trackSource.map(TrackSource::getTrack).orElse(null);
+
+        if (track != null) {
+            var playHistory = new PlayHistory();
+            playHistory.setGuildId(guildId);
+            playHistory.setUserId(userId);
+            playHistory.setTrack(track);
+
+            playHistoryService.save(playHistory);
+        }
     }
 }
