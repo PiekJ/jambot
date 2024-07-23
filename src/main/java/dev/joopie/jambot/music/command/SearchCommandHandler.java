@@ -119,19 +119,24 @@ public class SearchCommandHandler implements CommandHandler, CommandAutocomplete
     @Transactional
     @Override
     public List<Command.Choice> autocomplete(CommandAutoCompleteInteraction event) {
+        log.debug("Autocomplete command received: {}, focused option: {}", event.getName(), event.getFocusedOption());
         return switch (event.getFocusedOption().getName()) {
-            case COMMAND_OPTION_INPUT_ARTIST -> artistRepository.findAll().stream()
-                    .filter(artist -> artist.getName().startsWith(event.getFocusedOption().getValue())) // only display words that start with the user's current input
+            case COMMAND_OPTION_INPUT_ARTIST -> artistRepository
+                    .findFirst25ByNameStartingWith(event.getFocusedOption().getValue())
+                    .stream()
                     .map(artist -> new Command.Choice(artist.getName(), artist.getName())) // map the words to choices
-                    .limit(COMMAND_OPTION_MAX_OPTIONS)
                     .toList();
-            case COMMAND_OPTION_INPUT_SONGNAME -> trackRepository.findAll().stream()
-                    .filter(artistTrack -> artistTrack.getArtists().stream()
-                            .anyMatch(artist -> artist.getName().contains(event.getOptions().getFirst().getAsString())))
-                    .filter(track -> track.getName().startsWith(event.getFocusedOption().getValue()))
-                    .map(track -> new Command.Choice(track.getName(), track.getName()))
-                    .limit(COMMAND_OPTION_MAX_OPTIONS)
-                    .toList();
+            case COMMAND_OPTION_INPUT_SONGNAME -> {
+                log.debug("Searching for tracks by '{}'. User narrowed it by using '{}'", event.getOptions().getFirst().getAsString(), event.getFocusedOption().getValue());
+                yield trackRepository
+                        .findFirst25ByNameStartingWithAndArtistsName(
+                                event.getFocusedOption().getValue(),
+                                event.getOptions().getFirst().getAsString())
+                        .stream()
+                        .map(track -> new Command.Choice(track.getName(), track.getName()))
+                        .limit(COMMAND_OPTION_MAX_OPTIONS)
+                        .toList();
+            }
             default -> List.of();
         };
     }
