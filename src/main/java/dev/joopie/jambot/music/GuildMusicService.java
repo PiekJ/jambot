@@ -96,7 +96,7 @@ public class GuildMusicService {
                 input,
                 new AudioTrackLoadResultHandler(
                         musicPlayer,
-                        new AudioTrackLoadResultHandler.MetaData(member.getGuild().getId(), member.getId(), input)));
+                        new AudioTrackLoadResultHandler.MetaData(member.getId(), input)));
     }
 
 

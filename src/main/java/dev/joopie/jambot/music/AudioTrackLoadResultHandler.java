@@ -41,6 +41,6 @@ public class AudioTrackLoadResultHandler implements AudioLoadResultHandler {
         log.warn("We tried our best, but that wasn't enough :(", exception);
     }
 
-    public record MetaData(String guildId, String userId, String mediaId) {
+    public record MetaData(String userId, String mediaId) {
     }
 }

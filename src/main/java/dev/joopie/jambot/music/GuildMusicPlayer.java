@@ -82,7 +82,7 @@ public class GuildMusicPlayer {
             return;
         }
 
-        if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData(String userId, String guildId, String mediaId)) {
+        if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData(String userId, String mediaId)) {
             createHistoryEntry(userId, guildId, mediaId);
         }
 
@@ -110,7 +110,7 @@ public class GuildMusicPlayer {
     public void next() {
         var audioTrack = audioTrackQueue.poll();
         if (audioPlayer.startTrack(audioTrack, false)) {
-            if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData(String userId, String guildId, String mediaId)) {
+            if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData(String userId, String mediaId)) {
                 createHistoryEntry(userId, guildId, mediaId);
             }
             return;
@@ -276,13 +276,13 @@ public class GuildMusicPlayer {
                         .anyMatch(member::equals);
     }
 
-    private void createHistoryEntry(String userId, String guildId, String input) {
+    private void createHistoryEntry(String userId, long guildId, String input) {
         var trackSource = trackSourceService.findByYoutubeId(input);
         var track = trackSource.map(TrackSource::getTrack).orElse(null);
 
         if (track != null) {
             var playHistory = new PlayHistory();
-            playHistory.setGuildId(guildId);
+            playHistory.setGuildId(String.valueOf(guildId));
             playHistory.setUserId(userId);
             playHistory.setTrack(track);
 
