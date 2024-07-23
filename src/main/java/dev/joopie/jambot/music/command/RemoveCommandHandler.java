@@ -21,7 +21,6 @@ import java.util.Objects;
 public class RemoveCommandHandler implements CommandHandler, CommandAutocomplete {
     private static final int COMMAND_OPTION_NAME_MAX_LENGTH = 100;
     private static final int SKIP_CURRENT_PLAYING_FROM_QUEUE = 1;
-    private static final int COMMAND_OPTION_MAX_OPTIONS = 25;
 
     private static final String COMMAND_NAME = "remove";
     private static final String COMMAND_OPTION_TRACK_NUMBER = "tracknumber";

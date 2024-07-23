@@ -12,8 +12,6 @@ import dev.joopie.jambot.service.SearchService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.events.interaction.command.CommandAutoCompleteInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.CommandAutoCompleteInteraction;
 import net.dv8tion.jda.api.interactions.commands.CommandInteraction;
@@ -23,6 +21,7 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.RestAction;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,11 +31,10 @@ import java.util.Objects;
 @Component
 @Slf4j
 @RequiredArgsConstructor
-public class SearchCommandHandler extends ListenerAdapter implements CommandHandler, CommandAutocomplete {
+public class SearchCommandHandler implements CommandHandler, CommandAutocomplete {
     private static final String COMMAND_NAME = "search";
     private static final String COMMAND_OPTION_INPUT_ARTIST = "artist";
     private static final String COMMAND_OPTION_INPUT_SONGNAME = "songname";
-    private static final String YOUTUBE_URL = "https://www.youtube.com/watch?v=";
 
     private final SearchService searchService;
 
@@ -47,7 +45,7 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
 
     @Override
     public Command.Type type() {
-        return null;
+        return Command.Type.SLASH;
     }
 
     @Override
@@ -56,22 +54,25 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
                 .addOption(
                         OptionType.STRING,
                         COMMAND_OPTION_INPUT_ARTIST,
-                        "Name of your artist. If more than one, just provide one. If auto-complete does not give your option just type the name.",
+                        "If more than one, just provide one. If there's no result, just provide your own",
                         true,true)
                 .addOption(
                         OptionType.STRING,
                         COMMAND_OPTION_INPUT_SONGNAME,
-                        "Name of your song. If auto-complete does not give your option just type in the name. Be as specific as you can. Include eq. Remix / Radio Edit / Re-Mastered etc.",
+                        "Be specific. Include eq. Remix / Radio Edit / Re-Mastered etc. If no result, just provide your own",
                         true,true);
     }
 
     @Override
-    public boolean shouldHandle(final CommandInteractionPayload event) {
+    public boolean shouldHandle(final @NotNull CommandInteractionPayload event) {
         return COMMAND_NAME.equals(event.getName());
     }
 
     @Override
     public RestAction<?> handle(final CommandInteraction event) {
+        if (event.getMember() == null) {
+            return event.reply("Failed to retrieve who you are!").setEphemeral(true);
+        }
 
         final var inputArtistOption = event.getOption(COMMAND_OPTION_INPUT_ARTIST);
         final var inputTrackOption = event.getOption(COMMAND_OPTION_INPUT_SONGNAME);
@@ -82,7 +83,7 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
         }
 
         if (Objects.isNull(inputTrackOption)) {
-            return event.reply("Please provide me an artist name")
+            return event.reply("Please provide me a track name")
                     .setEphemeral(true);
         }
 
@@ -92,14 +93,13 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
             final var artistName = Objects.requireNonNull(inputArtistOption).getAsString();
             final var trackName = Objects.requireNonNull(inputTrackOption).getAsString();
 
-
             final var videoId = searchService.performSpotifyAndYoutubeSearch(artistName, trackName);
 
             if (videoId.isEmpty()) {
                 return event.reply("We could not find any results with your search **%s - %s**".formatted(artistName, trackName)).setEphemeral(true);
             } else {
                 musicService.play(event.getMember(), videoId);
-                final var parsedVideoId = YOUTUBE_URL + videoId;
+                final var parsedVideoId = GuildMusicService.YOUTUBE_URL + videoId;
 
                 // Create and send the message with buttons
                 return event.getHook().sendMessage(
@@ -118,28 +118,21 @@ public class SearchCommandHandler extends ListenerAdapter implements CommandHand
 
     @Transactional
     @Override
-    public void onCommandAutoCompleteInteraction(CommandAutoCompleteInteractionEvent event) {
-        if (event.getName().equals(COMMAND_NAME) && event.getFocusedOption().getName().equals(COMMAND_OPTION_INPUT_ARTIST)) {
-            var options = artistRepository.findAll().stream()
+    public List<Command.Choice> autocomplete(CommandAutoCompleteInteraction event) {
+        return switch (event.getFocusedOption().getName()) {
+            case COMMAND_OPTION_INPUT_ARTIST -> artistRepository.findAll().stream()
                     .filter(artist -> artist.getName().startsWith(event.getFocusedOption().getValue())) // only display words that start with the user's current input
                     .map(artist -> new Command.Choice(artist.getName(), artist.getName())) // map the words to choices
+                    .limit(COMMAND_OPTION_MAX_OPTIONS)
                     .toList();
-            event.replyChoices(options).queue();
-        }
-
-        if (event.getName().equals(COMMAND_NAME) && event.getFocusedOption().getName().equals(COMMAND_OPTION_INPUT_SONGNAME)) {
-            var options = trackRepository.findAll().stream()
+            case COMMAND_OPTION_INPUT_SONGNAME -> trackRepository.findAll().stream()
                     .filter(artistTrack -> artistTrack.getArtists().stream()
                             .anyMatch(artist -> artist.getName().contains(event.getOptions().getFirst().getAsString())))
                     .filter(track -> track.getName().startsWith(event.getFocusedOption().getValue()))
                     .map(track -> new Command.Choice(track.getName(), track.getName()))
+                    .limit(COMMAND_OPTION_MAX_OPTIONS)
                     .toList();
-            event.replyChoices(options).queue();
-        }
-    }
-
-    @Override
-    public List<Command.Choice> autocomplete(CommandAutoCompleteInteraction event) {
-        return List.of();
+            default -> List.of();
+        };
     }
 }

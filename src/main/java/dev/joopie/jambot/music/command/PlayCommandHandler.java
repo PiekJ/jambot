@@ -34,7 +34,6 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
     private static final String COMMAND_NAME = "play";
     private static final String COMMAND_OPTION_INPUT_NAME = "input";
     private static final String SPOTIFY = "spotify";
-    private static final String YOUTUBE_URL = "https://www.youtube.com/watch?v=";
     private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
     private static final Pattern URL_PATTERN = Pattern.compile("^(http(|s)://.*)$");
     private static final Pattern YOU_TUBE_URL_PATTERN = Pattern.compile("^(https?)?(://)?(www\\.)?(m\\.)?((youtube\\.com)|(youtu\\.be))/");
@@ -90,8 +89,14 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
 
             if (input.contains(SPOTIFY)) {
                 return handlePlayWithInteractions(event, handleSpotifyLink(input));
-            } else if (input.contains("youtube") || input.contains("youtu.be")){
-                return handlePlay(event, extractYouTubeVideoId(input));
+            } else if (input.contains("youtube") || input.contains("youtu.be")) {
+                var extractedId = extractYouTubeVideoId(input);
+
+                if (extractedId == null) {
+                    return event.reply("Couldn't extract youtube video ID from your link.").setEphemeral(true);
+                }
+
+                return handlePlay(event, extractedId);
             } else {
                 return handlePlay(event, input);
             }
@@ -104,8 +109,12 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
     }
 
     public WebhookMessageCreateAction<Message> handlePlayWithInteractions(CommandInteraction event, String videoId) {
+        if (Strings.isBlank(videoId)) {
+            return event.getHook().sendMessage("Whoops! This video id got lost in the abyss.").setEphemeral(true);
+        }
+
         musicService.play(event.getMember(), videoId);
-        var parsedVideoId = YOUTUBE_URL + videoId;
+        var parsedVideoId = GuildMusicService.YOUTUBE_URL + videoId;
             // Create and send the message with buttons
             return event.getHook().sendMessage(
                             "**Track added!**%n%n OK, we added the track to the queue! In order to improve our service we would like%n to ask you to rate our search result.%n%n Please let us know :thumbsup_tone3: or :thumbsdown_tone3: if we got the correct result for you.%n%n %s".formatted(parsedVideoId))
@@ -113,13 +122,12 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
                             Button.success("accept", "Accept").withEmoji(Emoji.fromUnicode("U+1F44D U+1F3FD")),
                             Button.danger("reject", "Reject").withEmoji(Emoji.fromUnicode("U+1F44E U+1F3FD"))
                     );
-
     }
 
     public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, String videoId) {
         var mediaUrl = videoId;
         if (videoId.length() == 11) {
-            mediaUrl = YOUTUBE_URL + videoId;
+            mediaUrl = GuildMusicService.YOUTUBE_URL + videoId;
         }
         musicService.play(event.getMember(), videoId);
         return event.getHook().sendMessage(

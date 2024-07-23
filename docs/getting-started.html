@@ -28,13 +28,13 @@
             <div class="mb-lg-5">
                 <h4>Development and selfhosting</h4>
                 <p class="fw-bold">Selfhosting as a server owner</p>
-                If you&#39;re a server owner and are considering selfhosting keep in mind that we recommend <a
+                If you're a server owner and are considering selfhosting keep in mind that we recommend <a
                     target="_blank"
                     href="https://discord.com/api/oauth2/authorize?client_id=888104841887506542&permissions=36718592&scope=applications.commands%20bot">using
                 the bot that we host</a>.
-                The reason for this is that selfhosting only has minor upsides and that we don&#39;t offer support to
-                selfhosters. </p>
-                <code>We only recommend using this guide if you're a developer and know what you are doing.</code>
+                The reason for this is that selfhosting only has minor upsides and that we don't offer support to
+                selfhosters.
+                <code>We only recommend using this guide if you're a developer and know what you're doing.</code>
             </div>
 
             <div class="mb-lg-5">
@@ -71,8 +71,8 @@
                     exist, create it first by copying the content of the original file to your new local file. Make sure
                     to
                     run your Spring Boot project with the active profile <code>local</code>. Otherwise, the original
-                    <code>application.properties</code> will be used at the startup. With using the local.properties
-                    file, you make sure that keys are not getting pushed to Github.</p>
+                    <code>application.properties</code> will be used at the startup. With using the <code>application-local.properties</code>
+                    file, you make sure that keys are not getting pushed to GitHub.</p>
             </div>
 
             <div class="mb-lg-5">
@@ -81,14 +81,15 @@
                     <li>Go to the <a target="_blank" href="https://discord.com/developers/applications">Discord
                         Developers Portal</a>
                     </li>
-                    <li>Create a bot and enter your token into the config file under <code>jda.token</code></li>
+                    <li>Create a bot and enter your token into the config file under <code>red.jambot.jda.token</code>
+                    </li>
                 </ol>
                 <h5>Youtube</h5>
                 <ol>
                     <li>Go to the <a target="_blank" href="https://console.cloud.google.com/apis/credentials">Google
                         Cloud Portal</a>
                     </li>
-                    <li>Create a application and enter your API key into the config file under <code>youtube.key</code>
+                    <li>Create an application and enter your API key into the config file under <code>red.jambot.youtube.token</code>
                     </li>
                 </ol>
                 <h5>Spotify</h5>
@@ -97,18 +98,20 @@
                         Developer
                         dashboard</a>
                     </li>
-                    <li>Create an app and enter both the ID and the secret into the config file under <code>spotify.clientId</code>
-                        and <code>spotify.clientSecret</code>
+                    <li>Create an app and enter both the ID and the secret into the config file under <code>red.jambot.spotify.clientId</code>
+                        and <code>red.jambot.spotify.clientSecret</code>
                     </li>
                 </ol>
                 <h5>Discord User</h5>
                 <ol>
-                    <li>Go to your Discord App and right click on your user account. Use the button <code>Copy ID</code>
+                    <li>Go to your Discord App and right-click on your user account. Use the button <code>Copy ID</code>
                         in the menu. If this option is not available, you need to enable developer settings in Discord.
                         This setting can be found in Discord under <code>Settings > Advanced > Developer Mode</code>
                     </li>
-                    <li>Fill your ID under the <code>app.admin-user-id</code> and your preferred secret text which can
-                        be used to update the Application Commands under <code>app.update-commands-secret</code></li>
+                    <li>Fill your ID under the <code>red.jambot.app.admin-user-id</code> and your preferred secret text
+                        which can
+                        be used to update the Application Commands under
+                        <code>red.jambot.app.update-commands-secret</code></li>
                 </ol>
             </div>
 
@@ -143,12 +146,13 @@
 
             <div class="mb-lg-5">
                 <h4>Start your application</h4>
-                <p>After the bot has entered the server and you have started the application, you need to use your
-                    <code>app.update-commands-secret</code> in a private DM with your bot to update the <code>/</code>
+                <p>After the bot has entered the server, and you have started the application, you need to use your
+                    <code>red.jambot.app.update-commands-secret</code> in a private DM with your bot to update the
+                    <code>/</code>
                     commands. <b>Note:
                         This will take a while. Application Commands are not immediately available. After a few minutes
                         you should see all the available commands of the Jambot.</b> If you do not see any commands pop
-                    up, please be sure that you provided the right <code>app.admin-user-id</code> and <code>app.update-commands-secret</code>.
+                    up, please be sure that you provided the right <code>red.jambot.app.admin-user-id</code> and <code>red.jambot.app.update-commands-secret</code>.
                     If you have added newly commands, make sure that they do comply with the JDA specifications. This
                     mean not capital letters as input fields for example.
                 </p>

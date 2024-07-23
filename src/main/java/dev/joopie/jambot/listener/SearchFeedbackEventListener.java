@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
@@ -30,7 +29,7 @@ public class SearchFeedbackEventListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        if (event.getUser().isBot()) return;
+        if (event.getUser().isBot() || event.getMessage().getInteraction() == null) return;
 
         if (!event.getUser().equals(event.getMessage().getInteraction().getUser())) {
             event.reply(":rotating_light: You *nasty* boy! You are trying to react to a command that is not initiated by you. I see everything :wink:").setEphemeral(true).queue();
@@ -55,18 +54,16 @@ public class SearchFeedbackEventListener extends ListenerAdapter {
         event.getMessage().editMessageComponents().queue();
     }
 
-    private static Optional<String> extractYouTubeId(String url) {
+    private Optional<String> extractYouTubeId(String url) {
+        var regularMatcher = PATTERN_1.matcher(url);
+        var shortenedMatcher = PATTERN_2.matcher(url);
 
-
-        var matcher1 = PATTERN_1.matcher(url);
-        var matcher2 = PATTERN_2.matcher(url);
-
-        if (matcher1.find()) {
+        if (regularMatcher.find()) {
             // Extract the ID from youtube.com/watch?v=...
-            return Optional.of(matcher1.group(1));
-        } else if (matcher2.find()) {
+            return Optional.of(regularMatcher.group(1));
+        } else if (shortenedMatcher.find()) {
             // Extract the ID from youtu.be/...
-            return Optional.of(matcher2.group(1));
+            return Optional.of(shortenedMatcher.group(1));
         }
         return Optional.empty();
     }
