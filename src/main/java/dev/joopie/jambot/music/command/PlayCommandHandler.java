@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.requests.restaction.WebhookMessageCreateAction;
+import org.apache.http.util.TextUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,6 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
     private static final String COMMAND_NAME = "play";
     private static final String COMMAND_OPTION_INPUT_NAME = "input";
     private static final String SPOTIFY = "spotify";
-    private static final String YOUTUBE_URL = "https://www.youtube.com/watch?v=";
     private static final Pattern URL_OR_ID_PATTERN = Pattern.compile("^(http(|s)://.*|[\\w\\-]{11})$");
     private static final Pattern URL_PATTERN = Pattern.compile("^(http(|s)://.*)$");
     private static final Pattern YOU_TUBE_URL_PATTERN = Pattern.compile("^(https?)?(://)?(www\\.)?(m\\.)?((youtube\\.com)|(youtu\\.be))/");
@@ -90,8 +90,9 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
 
             if (input.contains(SPOTIFY)) {
                 return handlePlayWithInteractions(event, handleSpotifyLink(input));
-            } else if (input.contains("youtube") || input.contains("youtu.be")){
-                return handlePlay(event, extractYouTubeVideoId(input));
+            } else if (input.contains("youtube") || input.contains("youtu.be")) {
+                var extractedId = extractYouTubeVideoId(input);
+                return handlePlay(event, extractedId != null ? extractedId : Strings.EMPTY);
             } else {
                 return handlePlay(event, input);
             }
@@ -104,8 +105,12 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
     }
 
     public WebhookMessageCreateAction<Message> handlePlayWithInteractions(CommandInteraction event, String videoId) {
+        if (videoId == null || TextUtils.isEmpty(videoId)) {
+            return event.getHook().sendMessage("Whoops! This link got lost in the abyss.").setEphemeral(true);
+        }
+
         musicService.play(event.getMember(), videoId);
-        var parsedVideoId = YOUTUBE_URL + videoId;
+        var parsedVideoId = GuildMusicService.YOUTUBE_URL + videoId;
             // Create and send the message with buttons
             return event.getHook().sendMessage(
                             "**Track added!**%n%n OK, we added the track to the queue! In order to improve our service we would like%n to ask you to rate our search result.%n%n Please let us know :thumbsup_tone3: or :thumbsdown_tone3: if we got the correct result for you.%n%n %s".formatted(parsedVideoId))
@@ -119,7 +124,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
     public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, String videoId) {
         var mediaUrl = videoId;
         if (videoId.length() == 11) {
-            mediaUrl = YOUTUBE_URL + videoId;
+            mediaUrl = GuildMusicService.YOUTUBE_URL + videoId;
         }
         musicService.play(event.getMember(), videoId);
         return event.getHook().sendMessage(

@@ -1,6 +1,5 @@
 package dev.joopie.jambot.music;
 
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -14,11 +13,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class GuildMusicService {
+    public static final String YOUTUBE_URL = "https://www.youtube.com/watch?v=";
     private static final String RICKASTLEY = "https://youtu.be/E9TYbwI8xsE";
     private final AudioPlayerManager audioPlayerManager;
     private final Map<Long, GuildMusicPlayer> musicPlayerMap = new HashMap<>();
@@ -144,7 +145,7 @@ public class GuildMusicService {
                         .duration(x.getDuration())
                         .position(x.getPosition())
                         .build())
-                .toList();
+                .collect(Collectors.toList());
     }
 
     public void shuffleQueuedAudioTracks(final Member member) {
