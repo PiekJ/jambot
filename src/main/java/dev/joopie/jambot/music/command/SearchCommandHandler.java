@@ -120,15 +120,16 @@ public class SearchCommandHandler implements CommandHandler, CommandAutocomplete
     @Override
     public List<Command.Choice> autocomplete(CommandAutoCompleteInteraction event) {
         return switch (event.getFocusedOption().getName()) {
-            case COMMAND_OPTION_INPUT_ARTIST -> artistRepository.findAll().stream()
-                    .filter(artist -> artist.getName().startsWith(event.getFocusedOption().getValue())) // only display words that start with the user's current input
+            case COMMAND_OPTION_INPUT_ARTIST -> artistRepository
+                    .findFirst25ByNameStartingWith(event.getFocusedOption().getValue())
+                    .stream()
                     .map(artist -> new Command.Choice(artist.getName(), artist.getName())) // map the words to choices
-                    .limit(COMMAND_OPTION_MAX_OPTIONS)
                     .toList();
-            case COMMAND_OPTION_INPUT_SONGNAME -> trackRepository.findAll().stream()
-                    .filter(artistTrack -> artistTrack.getArtists().stream()
-                            .anyMatch(artist -> artist.getName().contains(event.getOptions().getFirst().getAsString())))
-                    .filter(track -> track.getName().startsWith(event.getFocusedOption().getValue()))
+            case COMMAND_OPTION_INPUT_SONGNAME -> trackRepository
+                    .findFirst25ByNameStartingWithAndArtistsName(
+                            event.getFocusedOption().getValue(),
+                            event.getOptions().getFirst().getAsString())
+                    .stream()
                     .map(track -> new Command.Choice(track.getName(), track.getName()))
                     .limit(COMMAND_OPTION_MAX_OPTIONS)
                     .toList();
