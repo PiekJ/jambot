@@ -1,6 +1,10 @@
 package dev.joopie.jambot.music;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import dev.joopie.jambot.model.PlayHistory;
+import dev.joopie.jambot.model.TrackSource;
+import dev.joopie.jambot.service.PlayHistoryService;
+import dev.joopie.jambot.service.TrackSourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
@@ -24,6 +28,8 @@ public class GuildMusicService {
     private final AudioPlayerManager audioPlayerManager;
     private final Map<Long, GuildMusicPlayer> musicPlayerMap = new HashMap<>();
     private final TaskScheduler taskScheduler;
+    private final PlayHistoryService playHistoryService;
+    private final TrackSourceService trackSourceService;
 
     public void initializeGuildMusicService(final Guild guild) {
         if (musicPlayerMap.containsKey(guild.getIdLong())) {
@@ -49,10 +55,7 @@ public class GuildMusicService {
 
         if (musicPlayer == null) {
             log.warn("Whaaat? How can we destroy something we expected to be there when it's not?!");
-            return;
         }
-
-        musicPlayer.leave();
     }
 
     public void leaveWhenLeftAlone(final Guild guild) {
@@ -86,6 +89,21 @@ public class GuildMusicService {
         }
 
         audioPlayerManager.loadItemOrdered(musicPlayer, input, new AudioTrackLoadResultHandler(musicPlayer));
+        createHistoryEntry(member, input);
+    }
+
+    private void createHistoryEntry(Member member, String input) {
+        var trackSource = trackSourceService.findByYoutubeId(input);
+        var track = trackSource.map(TrackSource::getTrack).orElse(null);
+
+        if (track != null) {
+            var playHistory = new PlayHistory();
+            playHistory.setGuildId(member.getGuild().getId());
+            playHistory.setUserId(member.getId());
+            playHistory.setTrack(track);
+
+            playHistoryService.save(playHistory);
+        }
     }
 
     public void pause(final Member member) {
