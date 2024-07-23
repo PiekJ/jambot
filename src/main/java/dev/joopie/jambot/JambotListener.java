@@ -4,6 +4,7 @@ import dev.joopie.jambot.command.CommandAutocomplete;
 import dev.joopie.jambot.command.CommandHandler;
 import dev.joopie.jambot.config.ApplicationProperties;
 import dev.joopie.jambot.music.GuildMusicService;
+import dev.joopie.jambot.service.PlayHistoryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.events.guild.GuildJoinEvent;
@@ -28,6 +29,7 @@ public class JambotListener extends ListenerAdapter {
     private final GuildMusicService guildMusicService;
     private final ApplicationProperties applicationProperties;
     private final List<? extends CommandHandler> commandHandlers;
+    private final PlayHistoryService playHistoryService;
 
     @Override
     public void onGuildReady(@NotNull final GuildReadyEvent event) {
@@ -43,6 +45,7 @@ public class JambotListener extends ListenerAdapter {
 
     @Override
     public void onGuildLeave(@NotNull final GuildLeaveEvent event) {
+        playHistoryService.deleteHistoryFromGuild(event.getGuild());
         guildMusicService.destroyGuildMusicService(event.getGuild());
         log.info("Left guild `{}`.", event.getGuild().getName());
     }

@@ -233,4 +233,33 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="2" author="Carsten Flokstra">
+        <createTable tableName="play_history">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="guild_id" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="track_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="datetime">
+                <constraints nullable="false"/>
+            </column>
+            <column name="version" type="int">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="play_history" baseColumnNames="track_id" constraintName="fk_play_history_track" referencedTableName="track"
+                                 referencedColumnNames="id" onUpdate="NO ACTION" onDelete="NO ACTION"/>
+    </changeSet>
+
 </databaseChangeLog>

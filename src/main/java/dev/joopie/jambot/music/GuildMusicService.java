@@ -1,6 +1,8 @@
 package dev.joopie.jambot.music;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
+import dev.joopie.jambot.service.PlayHistoryService;
+import dev.joopie.jambot.service.TrackSourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.dv8tion.jda.api.entities.Guild;
@@ -24,6 +26,8 @@ public class GuildMusicService {
     private final AudioPlayerManager audioPlayerManager;
     private final Map<Long, GuildMusicPlayer> musicPlayerMap = new HashMap<>();
     private final TaskScheduler taskScheduler;
+    private final PlayHistoryService playHistoryService;
+    private final TrackSourceService trackSourceService;
 
     public void initializeGuildMusicService(final Guild guild) {
         if (musicPlayerMap.containsKey(guild.getIdLong())) {
@@ -37,7 +41,9 @@ public class GuildMusicService {
                 guild.getIdLong(),
                 audioPlayer,
                 taskScheduler,
-                new GuildProvider(guild.getJDA()));
+                new GuildProvider(guild.getJDA()),
+                trackSourceService,
+                playHistoryService);
 
         audioPlayer.addListener(new AudioPlayerListener(musicPlayer));
 
@@ -80,13 +86,20 @@ public class GuildMusicService {
         } else {
             var localDate = LocalDate.now();
             if (localDate.getMonthValue() == 4 && localDate.getDayOfMonth() == 1) { // April Fools Joke -- Only if the bot gets connected in a voice channel
-                audioPlayerManager.loadItemOrdered(musicPlayer, RICKASTLEY, new AudioTrackLoadResultHandler(musicPlayer));
+                audioPlayerManager.loadItemOrdered(musicPlayer, RICKASTLEY, new AudioTrackLoadResultHandler(musicPlayer, null));
             }
             musicPlayer.joinVoiceChannelOfMember(member);
         }
 
-        audioPlayerManager.loadItemOrdered(musicPlayer, input, new AudioTrackLoadResultHandler(musicPlayer));
+        audioPlayerManager.loadItemOrdered(
+                musicPlayer,
+                input,
+                new AudioTrackLoadResultHandler(
+                        musicPlayer,
+                        new AudioTrackLoadResultHandler.MetaData(member.getId(), input)));
     }
+
+
 
     public void pause(final Member member) {
         final var musicPlayer = getAudioPlayer(member.getGuild());
