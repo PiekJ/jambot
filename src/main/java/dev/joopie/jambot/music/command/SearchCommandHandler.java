@@ -119,24 +119,20 @@ public class SearchCommandHandler implements CommandHandler, CommandAutocomplete
     @Transactional
     @Override
     public List<Command.Choice> autocomplete(CommandAutoCompleteInteraction event) {
-        log.debug("Autocomplete command received: {}, focused option: {}", event.getName(), event.getFocusedOption());
         return switch (event.getFocusedOption().getName()) {
             case COMMAND_OPTION_INPUT_ARTIST -> artistRepository
                     .findFirst25ByNameStartingWith(event.getFocusedOption().getValue())
                     .stream()
                     .map(artist -> new Command.Choice(artist.getName(), artist.getName())) // map the words to choices
                     .toList();
-            case COMMAND_OPTION_INPUT_SONGNAME -> {
-                log.debug("Searching for tracks by '{}'. User narrowed it by using '{}'", event.getOptions().getFirst().getAsString(), event.getFocusedOption().getValue());
-                yield trackRepository
-                        .findFirst25ByNameStartingWithAndArtistsName(
-                                event.getFocusedOption().getValue(),
-                                event.getOptions().getFirst().getAsString())
-                        .stream()
-                        .map(track -> new Command.Choice(track.getName(), track.getName()))
-                        .limit(COMMAND_OPTION_MAX_OPTIONS)
-                        .toList();
-            }
+            case COMMAND_OPTION_INPUT_SONGNAME -> trackRepository
+                    .findFirst25ByNameStartingWithAndArtistsName(
+                            event.getFocusedOption().getValue(),
+                            event.getOptions().getFirst().getAsString())
+                    .stream()
+                    .map(track -> new Command.Choice(track.getName(), track.getName()))
+                    .limit(COMMAND_OPTION_MAX_OPTIONS)
+                    .toList();
             default -> List.of();
         };
     }
