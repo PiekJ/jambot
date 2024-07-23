@@ -121,7 +121,7 @@ public class GuildMusicPlayer {
 
     public synchronized void remove(final int songIndex) {
         if (songIndex >= audioTrackQueue.size()) {
-            throw new JambotMusicPlayerException("Track index is waaaaay to big for queued songs.");
+            throw new JambotMusicPlayerException("Track index is waaaaay too big for queued songs.");
         }
 
         if (songIndex < 0) {
@@ -220,6 +220,7 @@ public class GuildMusicPlayer {
 
         try {
             guild.getAudioManager().openAudioConnection(voiceChannel);
+            guild.getAudioManager().setSelfDeafened(true);
         } catch (InsufficientPermissionException e) {
             throw new JambotMusicPlayerException(
                     "I don't have enough permissions to join you, missing `%s`.".formatted(e.getPermission()));
