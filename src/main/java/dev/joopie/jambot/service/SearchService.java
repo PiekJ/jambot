@@ -5,6 +5,7 @@ import dev.joopie.jambot.api.youtube.ApiYouTubeService;
 import dev.joopie.jambot.model.Artist;
 import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.model.TrackSource;
+import dev.lavalink.youtube.YoutubeAudioSourceManager;
 import lombok.RequiredArgsConstructor;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class SearchService {
     public String performYoutubeSearch(Track track) {
         if (track.getTrackSources() == null || track.getTrackSources().isEmpty() ||  track.getTrackSources().stream().allMatch(TrackSource::isRejected)) {
             var trackSource = new TrackSource();
+            // TODO: handle searchForSong NULL
             trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), Duration.ofMillis(track.getDuration().longValue()).minusSeconds(SECONDS_OFFSET), Duration.ofMillis(track.getDuration().longValue()).plusSeconds(SECONDS_OFFSET), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
             trackSource.setSpotifyId(track.getExternalId());
             trackSource.setTrack(track);
