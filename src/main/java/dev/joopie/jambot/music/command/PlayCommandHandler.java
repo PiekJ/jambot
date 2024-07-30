@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 @Component
@@ -83,17 +84,23 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
             final var input = inputOption.getAsString();
 
             if (!URL_PATTERN.matcher(input).matches()) {
-                return event.getHook().sendMessage("In order to use this command, a link must be provided. If you want to search for music please use our `/search` command")
+                return event.getHook().sendMessage("In order to use this command, a **link** must be provided. If you want to search for music please use our `/search` command")
                         .setEphemeral(true);
             }
 
             if (input.contains(SPOTIFY)) {
-                return handlePlayWithInteractions(event, handleSpotifyLink(input));
+                var spotifySearchResult = handleSpotifyLink(input);
+
+                if (spotifySearchResult.isPresent()) {
+                    return handlePlayWithInteractions(event, spotifySearchResult.get());
+                } else {
+                    return event.getHook().sendMessage("Hey wizard! :man_mage::skin-tone-1: You have a magic Spotify link over there. We could not find any results!").setEphemeral(true);
+                }
             } else if (input.contains("youtube") || input.contains("youtu.be")) {
                 var extractedId = extractYouTubeVideoId(input);
 
                 if (extractedId == null) {
-                    return event.reply("Couldn't extract youtube video ID from your link.").setEphemeral(true);
+                    return event.getHook().sendMessage("Couldn't extract youtube video ID from your link.").setEphemeral(true);
                 }
 
                 return handlePlay(event, extractedId);
@@ -108,7 +115,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         }
     }
 
-    public WebhookMessageCreateAction<Message> handlePlayWithInteractions(CommandInteraction event, String videoId) {
+    public WebhookMessageCreateAction<Message> handlePlayWithInteractions(final CommandInteraction event, final String videoId) {
         if (Strings.isBlank(videoId)) {
             return event.getHook().sendMessage("Whoops! This video id got lost in the abyss.").setEphemeral(true);
         }
@@ -124,7 +131,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
                     );
     }
 
-    public WebhookMessageCreateAction<Message> handlePlay(CommandInteraction event, String videoId) {
+    public WebhookMessageCreateAction<Message> handlePlay(final CommandInteraction event, final String videoId) {
         var mediaUrl = videoId;
         if (videoId.length() == 11) {
             mediaUrl = GuildMusicService.YOUTUBE_URL + videoId;
@@ -135,16 +142,16 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
 
     }
 
-    private String handleSpotifyLink(String input) {
+    private Optional<String> handleSpotifyLink(final String input) {
         if (input.contains("track")) {
             final var spotifyResult = searchService.getTrack(input);
-            return spotifyResult.map(searchService::performYoutubeSearch).orElse(null);
+            return spotifyResult.isPresent() ? searchService.performYoutubeSearch(spotifyResult.get()) : Optional.empty();
         }
 
-        return Strings.EMPTY;
+        return Optional.empty();
     }
 
-    private String extractYouTubeVideoId(String url) {
+    private String extractYouTubeVideoId(final String url) {
         var youTubeLinkWithoutProtocolAndDomain = removeProtocolAndDomain(url);
 
         for (var pattern : VIDEO_ID_PATTERNS) {
@@ -158,7 +165,7 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
         return null;
     }
 
-    private String removeProtocolAndDomain(String url) {
+    private String removeProtocolAndDomain(final String url) {
         var matcher = YOU_TUBE_URL_PATTERN.matcher(url);
 
         if (matcher.find()) {
