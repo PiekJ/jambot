@@ -8,16 +8,11 @@ import org.apache.hc.core5.http.ParseException;
 import org.springframework.stereotype.Service;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
-import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
-import se.michaelthelin.spotify.requests.authorization.client_credentials.ClientCredentialsRequest;
-import se.michaelthelin.spotify.requests.data.tracks.GetTrackRequest;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
@@ -85,8 +80,7 @@ public class ApiSpotifyService {
         final var searchQuery = "%s - %s".formatted(artistName, trackName);
         try {
             return Arrays.stream(spotifyApi.searchTracks(searchQuery).build().execute().getItems())
-                            .filter(track -> Arrays.stream(track.getArtists())
-                                    .anyMatch(artist -> artist.getName().toLowerCase().contains(artistName.toLowerCase())))
+                            .filter(track -> trackHasName(track, trackName) && trackBelongsToArtist(track, artistName))
                             .findFirst()
                             .map(spotifyAPIConverterService::saveAPIResult);
 
@@ -96,6 +90,16 @@ public class ApiSpotifyService {
         }
     }
 
+    private boolean trackHasName(se.michaelthelin.spotify.model_objects.specification.Track track,
+                                 String trackName) {
+        return track.getName().equalsIgnoreCase(trackName);
+    }
+
+    private static boolean trackBelongsToArtist(se.michaelthelin.spotify.model_objects.specification.Track track,
+                                                String artistName) {
+        return Arrays.stream(track.getArtists())
+                .anyMatch(artist -> artist.getName().toLowerCase().contains(artistName.toLowerCase()));
+    }
 
 
     private Optional<String> getSpotifyIdFromLink(String link) {
