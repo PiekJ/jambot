@@ -93,6 +93,15 @@ public class ApiYouTubeService {
 
                 var matchingChannels = items.stream()
                         .filter(item -> artistNames.stream().anyMatch(artist -> item.getSnippet().getChannelTitle().toLowerCase().contains(artist.toLowerCase())))
+                        .filter(item -> {
+                            var videoDuration = parseDuration(item.getContentDetails().getDuration());
+                            return videoDuration.compareTo(minDuration) >= 0 && videoDuration.compareTo(maxDuration) <= 0;
+                        })
+                        .sorted((item1, item2) -> {
+                            var duration1 = parseDuration(item1.getContentDetails().getDuration());
+                            var duration2 = parseDuration(item2.getContentDetails().getDuration());
+                            return Long.compare(Math.abs(duration1.minus(minDuration).getSeconds()), Math.abs(duration2.minus(minDuration).getSeconds()));
+                        })
                         .map(this::mapItemToSearchResult)
                         .toList();
 
