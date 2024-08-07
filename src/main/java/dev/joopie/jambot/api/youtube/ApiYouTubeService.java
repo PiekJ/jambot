@@ -21,6 +21,7 @@ import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -122,7 +123,8 @@ public class ApiYouTubeService {
     }
 
     private List<String> getVideoIdsFromResponse(HttpEntity entity, final Track track) throws IOException {
-        final var trackSourcesIds = track.getTrackSources().stream().map(TrackSource::getYoutubeId).collect(Collectors.toSet());
+        final var trackSources = track.getTrackSources();
+        final var trackSourcesIds = trackSources == null ? new HashSet<>() : trackSources.stream().map(TrackSource::getYoutubeId).collect(Collectors.toSet());
         var response = parseResponse(entity, SearchResponse.class);
         return Optional.ofNullable(response)
                 .map(SearchResponse::getItems)
