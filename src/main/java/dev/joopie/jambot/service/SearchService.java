@@ -2,20 +2,18 @@ package dev.joopie.jambot.service;
 
 import dev.joopie.jambot.api.spotify.ApiSpotifyService;
 import dev.joopie.jambot.api.youtube.ApiYouTubeService;
-import dev.joopie.jambot.model.Artist;
 import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.model.TrackSource;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 public class SearchService {
-    private static final int SECONDS_OFFSET = 15;
     private final ApiSpotifyService apiSpotifyService;
     private final TrackSourceService trackSourceService;
     private final ApiYouTubeService apiYouTubeService;
@@ -24,10 +22,15 @@ public class SearchService {
     public Optional<String> performYoutubeSearch(final Track track) {
         if (track.getTrackSources() == null || track.getTrackSources().isEmpty() ||  track.getTrackSources().stream().allMatch(TrackSource::isRejected)) {
             var trackSource = new TrackSource();
-            trackSource.setYoutubeId(apiYouTubeService.searchForSong(track.getFormattedTrack(), Duration.ofMillis(track.getDuration().longValue()).minusSeconds(SECONDS_OFFSET), Duration.ofMillis(track.getDuration().longValue()).plusSeconds(SECONDS_OFFSET), track.getArtists().stream().map(Artist::getName).toList()).getVideoId());
-            trackSource.setSpotifyId(track.getExternalId());
-            trackSource.setTrack(track);
-            trackSourceService.save(trackSource);
+            var videoResult = apiYouTubeService.searchForSong(track);
+
+            if (videoResult != null && videoResult.isFound() && !Strings.isBlank(videoResult.getVideoId())) {
+                trackSource.setYoutubeId(videoResult.getVideoId());
+                trackSource.setSpotifyId(track.getExternalId());
+                trackSource.setTrack(track);
+                trackSourceService.save(trackSource);
+            }
+
             return Optional.of(trackSource.getYoutubeId());
         }
 
