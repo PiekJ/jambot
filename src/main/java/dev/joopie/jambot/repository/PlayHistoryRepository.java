@@ -14,6 +14,6 @@ public interface PlayHistoryRepository extends ListCrudRepository<PlayHistory, L
 
     @Modifying
     @Transactional
-    @Query(value = "DELETE FROM play_history WHERE user_id = :userId AND track_id = :trackId ORDER BY created_at DESC LIMIT 1)", nativeQuery = true)
+    @Query(value = "DELETE FROM play_history WHERE user_id = :userId AND track_id = :trackId ORDER BY created_at DESC LIMIT 1", nativeQuery = true)
     void deleteLatestByUserIdAndTrackId(@Param("userId") String userId, @Param("trackId") Long trackId);
 }

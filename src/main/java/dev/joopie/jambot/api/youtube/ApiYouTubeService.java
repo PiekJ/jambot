@@ -37,7 +37,6 @@ public class ApiYouTubeService {
             + "&type=video&videoDefinition=high&videoCategoryId=10&key=%s";
     private static final String VIDEO_DETAILS_URL = "https://youtube.googleapis.com/youtube/v3/videos"
             + "?part=contentDetails,snippet&id=%s&key=%s";
-    private static final int SECONDS_OFFSET = 15;
 
     private final YouTubeProperties properties;
     private final ObjectMapper objectMapper;
@@ -138,8 +137,8 @@ public class ApiYouTubeService {
 
     private List<SearchResultDto> getFilteredVideos(final List<String> videoIds, final Track track) throws IOException {
         var url = VIDEO_DETAILS_URL.formatted(String.join(",", videoIds), properties.getToken());
-        var minDuration = Duration.ofMillis(track.getDuration().longValue()).minusSeconds(SECONDS_OFFSET);
-        var maxDuration = Duration.ofMillis(track.getDuration().longValue()).plusSeconds(SECONDS_OFFSET);
+        var minDuration = Duration.ofMillis(track.getDuration().longValue()).minusSeconds(properties.getVideoDurationOffset());
+        var maxDuration = Duration.ofMillis(track.getDuration().longValue()).plusSeconds(properties.getVideoDurationOffset());
 
         try (var client = createHttpClient();
              var response = client.execute(RequestBuilder.get(url).build())) {

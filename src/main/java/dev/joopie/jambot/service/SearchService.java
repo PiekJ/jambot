@@ -31,7 +31,7 @@ public class SearchService {
                 trackSourceService.save(trackSource);
             }
 
-            return Strings.isBlank(trackSource.getYoutubeId()) ? Optional.of(trackSource.getYoutubeId()) : Optional.empty();
+            return Strings.isBlank(trackSource.getYoutubeId()) ? Optional.empty() : Optional.of(trackSource.getYoutubeId());
         }
 
         return track.getTrackSources().stream().filter(trackSource -> !trackSource.isRejected()).map(TrackSource::getYoutubeId).findFirst();
