@@ -144,8 +144,8 @@ public class PlayCommandHandler extends ListenerAdapter implements CommandHandle
 
     private Optional<String> handleSpotifyLink(final String input) {
         if (input.contains("track")) {
-            final var spotifyResult = searchService.getTrack(input);
-            return spotifyResult.isPresent() ? searchService.performYoutubeSearch(spotifyResult.get()) : Optional.empty();
+            return searchService.getTrack(input)
+                    .flatMap(searchService::performYoutubeSearch);
         }
 
         return Optional.empty();

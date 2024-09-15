@@ -52,7 +52,7 @@ public class SearchFeedbackEventListener extends ListenerAdapter {
                 trackSourceService.save(trackSource.get());
 
                 // Remove from the queue or play next track if the track is already playing
-                guildMusicService.handleFeedback(event.getGuild(), trackSource.get().getYoutubeId());
+                guildMusicService.removeFromQueueByYoutubeId(event.getGuild(), trackSource.get().getYoutubeId());
 
                 // Remove the song from the play history since this is not a valid entry
                 playHistoryService.deleteLatestTrackEntry(event.getUser().getId(), trackSource.get().getTrack());

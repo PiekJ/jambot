@@ -18,7 +18,7 @@ public class PlayHistoryService {
     }
     @Transactional
     public void deleteLatestTrackEntry(final String userId, final Track track) {
-         playHistoryRepository.deleteLatestByUserIdAndTrackIdAndCreatedAtEqualsCurrentDate(userId, track.getId());
+         playHistoryRepository.deleteLatestByUserIdAndTrackId(userId, track.getId());
     }
 
     @Transactional

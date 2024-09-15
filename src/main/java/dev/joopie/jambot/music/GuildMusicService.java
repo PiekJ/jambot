@@ -222,7 +222,7 @@ public class GuildMusicService {
         }
     }
 
-    public void handleFeedback(final Guild guild, final String youtubeId) {
+    public void removeFromQueueByYoutubeId(final Guild guild, final String youtubeId) {
         var musicPlayer = getAudioPlayer(guild);
         var tracks = musicPlayer.getQueuedAudioTracks();
 
