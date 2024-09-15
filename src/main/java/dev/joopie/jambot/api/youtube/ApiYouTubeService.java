@@ -1,6 +1,7 @@
 package dev.joopie.jambot.api.youtube;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import dev.joopie.jambot.model.Artist;
 import dev.joopie.jambot.model.Track;
 import dev.joopie.jambot.model.TrackSource;
 import lombok.RequiredArgsConstructor;
@@ -33,10 +34,11 @@ import java.util.stream.Collectors;
 public class ApiYouTubeService {
 
     private static final String SEARCH_URL = "https://youtube.googleapis.com/youtube/v3/search"
-            + "?part=id%%2Csnippet&maxResults=10&order=relevance&q=%s&regionCode=nl&topicId=%%2Fm%%2F04rlf"
-            + "&type=video&videoDefinition=high&videoCategoryId=10&key=%s";
+            + "?part=id%%2Csnippet&maxResults=10&order=relevance&q=%s&topicId=%%2Fm%%2F04rlf"
+            + "&type=video&key=%s";
     private static final String VIDEO_DETAILS_URL = "https://youtube.googleapis.com/youtube/v3/videos"
-            + "?part=contentDetails,snippet&id=%s&key=%s";
+            + "?part=contentDetails,snippet,statistics&id=%s&key=%s";
+
 
     private final YouTubeProperties properties;
     private final ObjectMapper objectMapper;
@@ -156,6 +158,11 @@ public class ApiYouTubeService {
                             var duration2 = parseDuration(item2.getContentDetails().getDuration());
                             return Long.compare(Math.abs(duration1.minus(minDuration).getSeconds()), Math.abs(duration2.minus(minDuration).getSeconds()));
                         })
+                        .sorted((item1, item2) -> Double.compare(
+                                calculateRelevanceScore(item2, track.getArtists()),
+                                calculateRelevanceScore(item1, track.getArtists())
+                        ))
+
                         .map(this::mapItemToSearchResult)
                         .toList();
             } else {
@@ -211,4 +218,53 @@ public class ApiYouTubeService {
             return thumbnails.get("default").getUrl();
         }
     }
+
+    /**
+     *
+     * @param video
+     * @param artist
+     * @return Relevant score for video's
+     */
+    public double calculateRelevanceScore(SearchResponse.Item video, List<Artist> artists) {
+        double score = 0.0;
+        String title = video.getSnippet().getTitle().toLowerCase();
+        String channelName = video.getSnippet().getChannelTitle().toLowerCase();
+
+        // Check if statistics are available to avoid NullPointerException
+        if (video.getStatistics() != null) {
+            long viewCount = video.getStatistics().getViewCount();
+            long likeCount = video.getStatistics().getLikeCount();
+
+            // 1. Only process videos that meet the minimum view count requirement
+            if (viewCount < properties.getMinimalViewCount()) {
+                score -= viewCount; // Penalize videos with low view counts
+            } else {
+                score += viewCount; // Boost videos with higher view counts
+            }
+
+            // 2. Matching any artist in channel name or title
+            boolean artistMatch = artists.stream()
+                    .anyMatch(artist -> channelName.contains(artist.getName().toLowerCase()) || title.contains(artist.getName().toLowerCase()));
+            if (artistMatch) {
+                score = score * 1.2; // Boost score if any artist name matches
+            }
+
+            // 3. View count relevance (use view count without normalization to max)
+            score += (viewCount / 1000000.0) * 0.8; // Adjust this factor based on scale
+
+            // 4. Get likes
+            if (likeCount > 0) {
+                score += likeCount;
+            }
+
+            // 5. Positive boost for official videos or channels based on heuristics
+            if (title.contains("official") || title.contains("official music video") || title.contains("official release") ||
+                    channelName.contains("official")) {
+                score = score * 1.5; // Boost for official content or channels that look official
+            }
+        }
+
+        return score;
+    }
+
 }
