@@ -12,4 +12,5 @@ public class YouTubeProperties {
      * YouTube API token from Google Cloud Platform.
      */
     private final String token;
+    private final int videoDurationOffset;
 }
