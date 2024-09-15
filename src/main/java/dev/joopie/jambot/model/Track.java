@@ -11,6 +11,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -40,6 +41,7 @@ public class Track extends BaseModel {
     private String externalId;
 
     private BigInteger duration;
+    private LocalDate releaseDate;
 
     @OneToMany(mappedBy = "track", fetch = FetchType.EAGER)
     private List<TrackSource> trackSources;

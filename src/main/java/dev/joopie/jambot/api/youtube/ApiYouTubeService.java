@@ -21,6 +21,10 @@ import java.io.InputStreamReader;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -33,10 +37,11 @@ import java.util.stream.Collectors;
 public class ApiYouTubeService {
 
     private static final String SEARCH_URL = "https://youtube.googleapis.com/youtube/v3/search"
-            + "?part=id%%2Csnippet&maxResults=10&order=relevance&q=%s&regionCode=nl&topicId=%%2Fm%%2F04rlf"
-            + "&type=video&videoDefinition=high&videoCategoryId=10&key=%s";
+            + "?part=id%%2Csnippet&maxResults=10&order=relevance&q=%s&topicId=%%2Fm%%2F04rlf"
+            + "&type=video&key=%s";
     private static final String VIDEO_DETAILS_URL = "https://youtube.googleapis.com/youtube/v3/videos"
-            + "?part=contentDetails,snippet&id=%s&key=%s";
+            + "?part=contentDetails,snippet,statistics&id=%s&key=%s";
+
 
     private final YouTubeProperties properties;
     private final ObjectMapper objectMapper;
@@ -156,6 +161,11 @@ public class ApiYouTubeService {
                             var duration2 = parseDuration(item2.getContentDetails().getDuration());
                             return Long.compare(Math.abs(duration1.minus(minDuration).getSeconds()), Math.abs(duration2.minus(minDuration).getSeconds()));
                         })
+                        .sorted((item1, item2) -> Double.compare(
+                                calculateRelevanceScore(item2, track),
+                                calculateRelevanceScore(item1, track)
+                        ))
+
                         .map(this::mapItemToSearchResult)
                         .toList();
             } else {
@@ -211,4 +221,70 @@ public class ApiYouTubeService {
             return thumbnails.get("default").getUrl();
         }
     }
+
+    public double calculateRelevanceScore(SearchResponse.Item video, Track track) {
+        double score = 0.0;
+        String title = video.getSnippet().getTitle().toLowerCase();
+        String channelName = video.getSnippet().getChannelTitle().toLowerCase();
+
+        // Check if statistics are available to avoid NullPointerException
+        if (video.getStatistics() != null) {
+            long viewCount = video.getStatistics().getViewCount();
+            long likeCount = video.getStatistics().getLikeCount();
+
+            // 1. Only process videos that meet the minimum view count requirement
+            if (viewCount >= properties.getMinimalViewCount()) {
+                score += Math.log10(viewCount) * 2; // Use logarithmic scaling to avoid large jumps for high view counts
+            } else {
+                score -= Math.log10(properties.getMinimalViewCount() - viewCount + 1) * 2; // Penalize for low view counts
+            }
+
+            // 2. Exact title match for the track name
+            if (title.equalsIgnoreCase(track.getName().toLowerCase())) {
+                score *= 1.5; // Boost for exact match on track title
+            }
+
+            // 3. Matching any artist in channel name or title
+            boolean artistMatch = track.getArtists().stream()
+                    .anyMatch(artist -> channelName.contains(artist.getName().toLowerCase()) || title.contains(artist.getName().toLowerCase()));
+            if (artistMatch) {
+                score *= 1.2; // Boost score if any artist name matches
+            }
+
+            // 4. Additional relevance for likes (reduced influence)
+            if (likeCount > 0) {
+                score += Math.log10(likeCount + 1) * 0.2; // Reduced impact for likes, emphasizing the release date more
+            }
+
+            // 5. Positive boost for official videos or channels based on heuristics
+            if (title.contains("official") || title.contains("official music video") || title.contains("official release") ||
+                    channelName.contains("official")) {
+                score *= 1.5; // Boost for official content or channels that look official
+            }
+
+            // 6. Check for release date with publish date. Give more weight to this factor
+            LocalDate videoUploadDate = Instant.parse(video.getSnippet().getPublishedAt())
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
+            long daysDifference = ChronoUnit.DAYS.between(track.getReleaseDate(), videoUploadDate);
+
+            // Adjust score with more emphasis on how close the upload date is to the track's release date
+            if (daysDifference < -2) {
+                score -= 10; //Probably HQ RIP, other song, leak or remake of a song. We penalize
+            } else if (daysDifference > -2 && daysDifference <=0) {
+                score += 5.0; // Strong boost for videos uploaded on the release date
+            } else if (daysDifference > 0 && daysDifference <= 30) {
+                score += 3.0; // Boost for videos uploaded within 30 days of the release
+            } else if (daysDifference > 30 && daysDifference <= 90) {
+                score += 1.5; // Small boost for videos uploaded within 90 days of release
+            } else if (daysDifference > 90) {
+                score -= 10.0; // Penalty for videos uploaded far after the release
+            }
+        }
+
+        return score;
+    }
+
+
 }

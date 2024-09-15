@@ -262,4 +262,13 @@
                                  referencedColumnNames="id" onUpdate="NO ACTION" onDelete="NO ACTION"/>
     </changeSet>
 
+    <changeSet id="3" author="Carsten Flokstra">
+        <addColumn tableName="track">
+            <column name="release_date" type="date">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+
 </databaseChangeLog>

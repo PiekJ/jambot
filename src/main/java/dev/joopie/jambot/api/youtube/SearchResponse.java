@@ -59,6 +59,9 @@ public class SearchResponse {
         @JsonProperty("contentDetails")
         private ContentDetails contentDetails;
 
+        @JsonProperty("statistics")
+        private Statistics statistics;
+
         @Getter
         @Setter
         public static class Id {
@@ -115,6 +118,37 @@ public class SearchResponse {
         public static class ContentDetails {
             @JsonProperty("duration")
             private String duration;
+
+            @JsonProperty("dimension")
+            private String dimension;
+
+            @JsonProperty("definition")
+            private String definition;
+
+            @JsonProperty("caption")
+            private String caption;
+
+            @JsonProperty("licensedContent")
+            private boolean licensedContent;
+
+            @JsonProperty("projection")
+            private String projection;
+        }
+
+        @Getter
+        @Setter
+        public static class Statistics {
+            @JsonProperty("viewCount")
+            private long viewCount;
+
+            @JsonProperty("likeCount")
+            private long likeCount;
+
+            @JsonProperty("dislikeCount")
+            private long dislikeCount;
+
+            @JsonProperty("commentCount")
+            private long commentCount;
         }
     }
 }
