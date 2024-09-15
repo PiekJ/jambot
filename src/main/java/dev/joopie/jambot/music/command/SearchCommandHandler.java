@@ -21,6 +21,7 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.components.buttons.Button;
 import net.dv8tion.jda.api.requests.RestAction;
+import org.apache.logging.log4j.util.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -95,11 +96,11 @@ public class SearchCommandHandler implements CommandHandler, CommandAutocomplete
 
             final var videoId = searchService.performSpotifyAndYoutubeSearch(artistName, trackName);
 
-            if (videoId.isEmpty()) {
+            if (videoId.isEmpty() || Strings.isBlank(videoId.get())) {
                 return event.reply("We could not find any results with your search **%s - %s**".formatted(artistName, trackName)).setEphemeral(true);
             } else {
-                musicService.play(event.getMember(), videoId);
-                final var parsedVideoId = GuildMusicService.YOUTUBE_URL + videoId;
+                musicService.play(event.getMember(), videoId.get());
+                final var parsedVideoId = GuildMusicService.YOUTUBE_URL + videoId.get();
 
                 // Create and send the message with buttons
                 return event.getHook().sendMessage(

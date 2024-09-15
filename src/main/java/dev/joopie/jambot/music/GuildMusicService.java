@@ -137,6 +137,15 @@ public class GuildMusicService {
         musicPlayer.remove(songIndex);
     }
 
+    public void remove(final Member member, final String mediaId) {
+        final var musicPlayer = getAudioPlayer(member.getGuild());
+
+        assertConnectedToVoiceChannel(musicPlayer);
+        assertMemberInSameVoiceChannel(musicPlayer, member);
+
+        musicPlayer.remove(mediaId);
+    }
+
     public void clear(final Member member) {
         final var musicPlayer = getAudioPlayer(member.getGuild());
 
@@ -210,6 +219,18 @@ public class GuildMusicService {
     private void assertMemberInSameVoiceChannel(final GuildMusicPlayer musicPlayer, final Member member) {
         if (!musicPlayer.isSameVoiceChannelAsMember(member)) {
             throw new JambotMusicServiceException("Join the voice channel!");
+        }
+    }
+
+    public void removeFromQueueByYoutubeId(final Guild guild, final String youtubeId) {
+        var musicPlayer = getAudioPlayer(guild);
+        var tracks = musicPlayer.getQueuedAudioTracks();
+
+        if (tracks != null && !tracks.isEmpty() && tracks.getFirst().getInfo().uri.contains(youtubeId)) {
+            musicPlayer.remove(youtubeId);
+            musicPlayer.next();
+        } else {
+            musicPlayer.remove(youtubeId);
         }
     }
 }
