@@ -82,10 +82,8 @@ public class GuildMusicPlayer {
             return;
         }
 
-        if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData(String userId, String mediaId)) {
-            createHistoryEntry(userId, guildId, mediaId);
-        }
 
+        createHistoryEntry(audioTrack);
         cancelLeaveTask();
     }
 
@@ -110,9 +108,7 @@ public class GuildMusicPlayer {
     public void next() {
         var audioTrack = audioTrackQueue.poll();
         if (audioPlayer.startTrack(audioTrack, false)) {
-            if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData(String userId, String mediaId)) {
-                createHistoryEntry(userId, guildId, mediaId);
-            }
+                createHistoryEntry(audioTrack);
             return;
         }
 
@@ -141,6 +137,11 @@ public class GuildMusicPlayer {
             }
         }
     }
+
+    public synchronized void remove(final String mediaId) {
+        audioTrackQueue.removeIf(track -> track.getInfo().uri.contains(mediaId));
+    }
+
 
     public void clear() {
         audioTrackQueue.clear();
@@ -277,17 +278,20 @@ public class GuildMusicPlayer {
                         .anyMatch(member::equals);
     }
 
-    private void createHistoryEntry(String userId, long guildId, String input) {
-        var trackSource = trackSourceService.findByYoutubeId(input);
-        var track = trackSource.map(TrackSource::getTrack).orElse(null);
+    private void createHistoryEntry(final AudioTrack audioTrack) {
+        if (audioTrack.getUserData() instanceof AudioTrackLoadResultHandler.MetaData(String userId, String mediaId)) {
+            var trackSource = trackSourceService.findByYoutubeId(mediaId);
+            var track = trackSource.map(TrackSource::getTrack).orElse(null);
 
-        if (track != null) {
-            var playHistory = new PlayHistory();
-            playHistory.setGuildId(String.valueOf(guildId));
-            playHistory.setUserId(userId);
-            playHistory.setTrack(track);
+            // We check extra to prevent wrong insertions into our PlayHistory
+            if (trackSource.isPresent() && !trackSource.get().isRejected() && track != null && audioTrack.getInfo().title.contains(track.getName())) {
+                var playHistory = new PlayHistory();
+                playHistory.setGuildId(String.valueOf(guildId));
+                playHistory.setUserId(userId);
+                playHistory.setTrack(track);
 
-            playHistoryService.save(playHistory);
+                playHistoryService.save(playHistory);
+            }
         }
     }
 }

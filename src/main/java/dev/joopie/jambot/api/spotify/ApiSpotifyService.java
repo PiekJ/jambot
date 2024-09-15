@@ -48,7 +48,7 @@ public class ApiSpotifyService {
     }
 
 
-    public Optional<Track> getTrack(String link) {
+    public Optional<Track> getTrack(final String link) {
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
@@ -73,7 +73,7 @@ public class ApiSpotifyService {
         return Optional.empty();
     }
 
-    public Optional<Track> searchForTrack(String artistName, String trackName) {
+    public Optional<Track> searchForTrack(final String artistName, final String trackName) {
         if (spotifyApi == null || spotifyApi.getAccessToken().isEmpty() || isAccessTokenExpired()) {
             initSpotifyAccessToken();
         }
@@ -102,7 +102,7 @@ public class ApiSpotifyService {
     }
 
 
-    private Optional<String> getSpotifyIdFromLink(String link) {
+    private Optional<String> getSpotifyIdFromLink(final String link) {
             var matcher = SPOTIFY_URL_PATTERN.matcher(link);
             if (matcher.find()) {
                 return Optional.of(matcher.group(2));

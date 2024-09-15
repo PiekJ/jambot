@@ -1,6 +1,8 @@
 package dev.joopie.jambot.listener;
 
 import dev.joopie.jambot.model.TrackSource;
+import dev.joopie.jambot.music.GuildMusicService;
+import dev.joopie.jambot.service.PlayHistoryService;
 import dev.joopie.jambot.service.TrackSourceService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -22,6 +24,8 @@ public class SearchFeedbackEventListener extends ListenerAdapter {
     private static final String REGEX_2 = "youtu\\.be/([a-zA-Z0-9_-]+)";
     private static final Pattern PATTERN_1 = Pattern.compile(REGEX_1);
     private static final Pattern PATTERN_2 = Pattern.compile(REGEX_2);
+    private final GuildMusicService guildMusicService;
+    private final PlayHistoryService playHistoryService;
 
     private Optional<TrackSource> getSpotifyToYoutubeFromMessage(Message message) {
         return extractYouTubeId(message.getContentStripped()).flatMap(trackSourceService::findByYoutubeId);
@@ -39,12 +43,20 @@ public class SearchFeedbackEventListener extends ListenerAdapter {
         if (componentId.equals("accept")) {
             event.reply("You accepted! :star_struck:  Great to hear that my Dora The Exploring did work out for you. Have fun listening to this banger! :muscle_tone2:").setEphemeral(true).queue();
         } else if (componentId.equals("reject")) {
+
             // Reject the link and delete the SpotifyToYoutube record
             final var trackSource = getSpotifyToYoutubeFromMessage(event.getMessage());
 
             if (trackSource.isPresent()) {
                 trackSource.get().setRejected(true);
                 trackSourceService.save(trackSource.get());
+
+                // Remove from the queue or play next track if the track is already playing
+                guildMusicService.removeFromQueueByYoutubeId(event.getGuild(), trackSource.get().getYoutubeId());
+
+                // Remove the song from the play history since this is not a valid entry
+                playHistoryService.deleteLatestTrackEntry(event.getUser().getId(), trackSource.get().getTrack());
+
                 event.reply("Thanks for your input! :pray_tone1:  Only together we can make Jambot better. I will try to get another link next time. :wink:").setEphemeral(true).queue();
             } else {
                 log.error("Hmm. Tracksource is empty. This is strange...");
