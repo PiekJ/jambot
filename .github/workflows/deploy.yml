@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Execute deploy commands on ${{ inputs.environment }}
-        uses: appleboy/ssh-action@v1.0.3
+        uses: appleboy/ssh-action@v1.1.0
         with:
           host: ${{ secrets.METAL_HOST }}
           username: ${{ secrets.METAL_USER }}
