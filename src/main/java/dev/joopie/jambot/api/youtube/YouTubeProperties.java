@@ -13,4 +13,5 @@ public class YouTubeProperties {
      */
     private final String token;
     private final int videoDurationOffset;
+    private final int minimalViewCount;
 }

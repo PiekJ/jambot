@@ -19,6 +19,7 @@ import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
 
 import java.math.BigInteger;
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 
@@ -68,6 +69,7 @@ public class SpotifyAPIConverterService {
             track.setDuration(BigInteger.valueOf(trackresult.getDurationMs()));
             track.setArtists(artists);
             track.setExternalId(trackresult.getId());
+            track.setReleaseDate(LocalDate.parse(trackresult.getAlbum().getReleaseDate()));
             track = trackRepository.save(track);
 
             var albumTrack = new AlbumTrack();
